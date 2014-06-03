@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use 5.014;
+
+use FindBin qw();
+use lib "$FindBin::Bin/../lib";
+
+use App::HomelyAlarm;
+App::HomelyAlarm->new_with_options->run();
