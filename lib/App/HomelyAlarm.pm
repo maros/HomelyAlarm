@@ -28,13 +28,6 @@ package App::HomelyAlarm {
         default         => '',
     );
     
-    option 'alarmtimer' => (
-        is              => 'rw',
-        isa             => 'Int',
-        documentation   => 'Default alarm timer',
-        default         => 60,
-    );
-    
     option 'twilio_sid' => (
         is              => 'rw',
         isa             => 'Str',
@@ -48,6 +41,12 @@ package App::HomelyAlarm {
     );
     
     option 'secret' => (
+        is              => 'rw',
+        isa             => 'Str',
+        required        => 1,
+    );
+    
+    option 'caller_number' => (
         is              => 'rw',
         isa             => 'Str',
         required        => 1,
@@ -147,11 +146,9 @@ package App::HomelyAlarm {
             unless $self->authenticate_alarm();
         
         unless ($self->has_timer) {
-            $req->input->read( my $buffer, $req->header("Content-Length"), 0 );
-            _log("Set alarm intrusion timer: $buffer");
             $self->timer(AnyEvent->timer( 
-                after   => $self->alarmtimer, 
-                cb      => sub { $self->run_alarm($buffer) }
+                after   => $req->param('timer') || 60, 
+                cb      => sub { $self->run_alarm($req->param('message')) }
             ));
         }
             
@@ -176,9 +173,9 @@ package App::HomelyAlarm {
         return _reply_ok(401)
             unless $self->authenticate_alarm($req);
         
-        $req->input->read( my $buffer, $req->header("Content-Length"), 0 );
-        _log("Run immediate alarm: $buffer");
-        $self->run_alarm($buffer);
+        my $message = $req->param('message');
+        _log("Run immediate alarm: $message");
+        $self->run_alarm($message);
         
         _reply_ok();     
     }
@@ -240,20 +237,24 @@ TWIML
     
     sub authenticate_alarm {
         my ($self,$req) = @_;
-        my $auth = $req->header('Authorization');
         
-        unless (defined $auth
-            && $auth eq $self->secret) {
-            _log('Could not authenticate alarm');
+        my $signature   = $req->header('X-HomelyAlarm-Signature');
+        my $digest      = hmac_sha1($req->uri, $self->secret);
+#        my $auth = $req->header('Authorization');
+        
+        unless (defined $signature
+            && $signature eq $digest) {
+            _log('Could not authenticate call');
             return 0;
         }
+        
         return 1;
     }
     
     sub authenticate_call {
         my ($self,$req) = @_;
         my $sid         = $req->param('AccountSid');
-        my $signature   = $req->param('X-Twilio-Signature');
+        my $signature   = $req->header('X-Twilio-Signature');
         my $digest      = hmac_sha1($req->uri, $self->twilio_authtoken);
         
         unless (defined $sid
@@ -296,10 +297,6 @@ TWIML
             [ 'Content-Type' => 'text/plain' ],
             [ "Error:".$code ],
         ];
-    }
-    
-    sub authenticate {
-        # TODO authenticate
     }
 }
 
