@@ -142,9 +142,6 @@ package App::HomelyAlarm {
     sub dispatch_POST_alarm_intrusion {
         my ($self,$req) = @_;
         
-        return _reply_ok(401)
-            unless $self->authenticate_alarm();
-        
         unless ($self->has_timer) {
             $self->timer(AnyEvent->timer( 
                 after   => $req->param('timer') || 60, 
@@ -158,9 +155,6 @@ package App::HomelyAlarm {
     sub dispatch_POST_alarm_reset {
         my ($self,$req) = @_;
         
-        return _reply_ok(401)
-            unless $self->authenticate_alarm($req);
-        
         _log("Reset alarm intrusion timer");
         
         $self->clear_timer();
@@ -170,21 +164,25 @@ package App::HomelyAlarm {
     sub dispatch_POST_alarm_run {
         my ($self,$req) = @_;
         
-        return _reply_ok(401)
-            unless $self->authenticate_alarm($req);
-        
         my $message = $req->param('message');
         _log("Run immediate alarm: $message");
         $self->run_alarm($message);
         
-        _reply_ok();     
+        _reply_ok();
+    }
+    
+    sub dispatch_POST_alarm_message {
+        my ($self,$req) = @_;
+        
+        my $message = $req->param('message');
+        _log("Run message: $message");
+        $self->run_alarm($message);
+        
+        _reply_ok();
     }
     
     sub dispatch_POST_call_fallback {
         my ($self,$req) = @_;
-        
-        return _reply_ok(401)
-            unless $self->authenticate_call($req);
         
         my $message = $self->message || 'Unknown reason';
         
@@ -194,9 +192,6 @@ package App::HomelyAlarm {
     
     sub dispatch_GET_call_twiml {
         my ($self,$req) = @_;
-        
-        return _reply_ok(401)
-            unless $self->authenticate_call($req);
         
         my $message = $self->message || 'Unknown reason';
         return [
