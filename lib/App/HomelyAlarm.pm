@@ -12,7 +12,7 @@ package App::HomelyAlarm {
     use Plack::Request;
     use WWW::Twilio::API;
     use Try::Tiny;
-    use Digest::HMAC_SHA1 qw(hmac_sha1);
+    use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
     
     option 'port' => (
         is              => 'rw',
@@ -109,7 +109,17 @@ package App::HomelyAlarm {
         );
         
         # Register service
-        $server->register_service(sub {
+        $server->register_service($self->app);
+         
+        $cv->recv;
+        
+        _log('End loop');
+    }
+    
+    sub app {
+        my ($self) = @_;
+        
+        return sub {
             my ($env)   = @_;
             my $req     = Plack::Request->new($env);
             my @paths   = grep { $_ } split('/',$req->path_info);
@@ -132,11 +142,7 @@ package App::HomelyAlarm {
             } else {
                 return _reply_error(404)
             }
-        });
- 
-        $cv->recv;
-        
-        _log('End loop');
+        };
     }
     
     sub dispatch_POST_alarm_intrusion {
@@ -200,7 +206,6 @@ package App::HomelyAlarm {
             [ <<TWIML
 <?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say voice="woman" language="en-US">Alarm triggered!</Say>
     <Say voice="woman" language="en-US">$message</Say>
     <Hangup/>
 </Response>
@@ -234,8 +239,7 @@ TWIML
         my ($self,$req) = @_;
         
         my $signature   = $req->header('X-HomelyAlarm-Signature');
-        my $digest      = hmac_sha1($req->uri, $self->secret);
-#        my $auth = $req->header('Authorization');
+        my $digest      = hmac_sha1_hex($req->request_uri, $self->secret);
         
         unless (defined $signature
             && $signature eq $digest) {
