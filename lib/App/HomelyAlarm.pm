@@ -238,16 +238,16 @@ TWIML
     sub authenticate_alarm {
         my ($self,$req) = @_;
         
-        my $signature   = $req->header('X-HomelyAlarm-Signature');
-        my $digest      = hmac_sha1_hex($req->request_uri, $self->secret);
+        my $signature = $req->header('X-HomelyAlarm-Signature');
         
-        unless (defined $signature
-            && $signature eq $digest) {
-            _log('Could not authenticate call');
-            return 0;
+        if (defined $signature) {
+            my $digest = hmac_sha1_hex($req->uri, $self->secret);
+            return 1
+                if ($signature eq $digest);
         }
         
-        return 1;
+        _log('Could not authenticate call');
+        return 0;
     }
     
     sub authenticate_call {
