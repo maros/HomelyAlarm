@@ -157,6 +157,7 @@ package App::HomelyAlarm {
     sub dispatch_POST_alarm_intrusion {
         my ($self,$req) = @_;
         
+        #$self->message($req->param('message'));
         unless ($self->has_timer) {
             $self->timer(AnyEvent->timer( 
                 after   => $req->param('timer') || 60, 
@@ -172,6 +173,7 @@ package App::HomelyAlarm {
         
         _log("Reset alarm intrusion timer");
         
+        $self->clear_message();
         $self->clear_timer();
         return _reply_ok();
     }
