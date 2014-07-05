@@ -236,7 +236,7 @@ TWIML
         $self->twilio->POST( 
             'Calls',
             From            => $self->caller_number,
-            To              => $self->callee_number,
+            To              => $self->caller_number,
             Url             => $self->self_url('/call/twiml'),
             Method          => 'GET',
             FallbackUrl     => $self->self_url('/call/fallback'),
