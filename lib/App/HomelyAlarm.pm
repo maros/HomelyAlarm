@@ -69,6 +69,11 @@ package App::HomelyAlarm {
         lazy_build      => 1,
     );
     
+    has 'self_url' => (
+        is              => 'rw',
+        predicate       => 'has_self_url',
+    );
+    
     sub _build_twilio {
         my ($self) = @_;
         return WWW::Twilio::API->new(
@@ -125,6 +130,10 @@ package App::HomelyAlarm {
             my @paths   = grep { $_ } split('/',$req->path_info);
             my $method  = join('_','dispatch',$req->method,@paths);
             my $authen  = join('_','authenticate',$paths[0]);
+            
+            unless ($self->has_self_url) {
+                $self->self_url($req->scheme.'://'.join('/',$req->env->{HTTP_HOST},@paths));
+            }
             
             my $coderef = $self->can($method);
             if ($coderef) {
@@ -265,11 +274,6 @@ TWIML
         }
         
         return 1;
-    }
-    
-    sub self_url {
-        my ($self,$req,@path) = @_;
-        return $req->scheme.'://'.join('/',$req->env->{HTTP_HOST},@path);
     }
     
     sub _log {
