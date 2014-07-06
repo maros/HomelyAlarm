@@ -2,7 +2,7 @@
 
 # t/basic.t - test basic usage
 
-use Test::Most tests => 19;
+use Test::Most tests => 21;
 
 use Plack::Test;
 use HTTP::Request::Common;
@@ -86,6 +86,13 @@ my $test = Plack::Test->create($ha->app);
     TwilioMock->reset_lastcall;
 }
 
+# Test call
+{
+    my $res = call_request('twiml','GET',{});
+    is($res->code,200,'Status ok');
+    like($res->content,qr/Test alarm run/,'Response ok');
+}
+
 # Test delayed alarm
 {
     my $cv = AnyEvent->condvar;
@@ -120,5 +127,16 @@ sub alarm_request {
     my $key = 'http://localhost'.$r->uri;
     my $digest = hmac_sha1_hex($key,$ha->secret);
     $r->header('X-HomelyAlarm-Signature' => $digest);
+    return $test->request($r);
+}
+
+sub call_request {
+    my ($path,$method,$params) = @_;
+    $params->{AccountSid} = $ha->twilio_sid;
+    my $url = '/call/'.$path.'?'.join('&',map { $_.'='.$params->{$_} } sort keys %{$params});
+    my $r = HTTP::Request->new($method,$url);
+    my $key = 'http://localhost'.$r->uri;
+    my $digest = hmac_sha1_hex($key,$ha->twilio_authtoken);
+    $r->header('X-Twilio-Signature' => $digest);
     return $test->request($r);
 }
