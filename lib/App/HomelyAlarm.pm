@@ -128,11 +128,16 @@ package App::HomelyAlarm {
             my ($env)   = @_;
             my $req     = Plack::Request->new($env);
             my @paths   = grep { $_ } split('/',$req->path_info);
+            
+            return _reply_error(404)
+                unless scalar @paths;
+            
             my $method  = join('_','dispatch',$req->method,@paths);
             my $authen  = join('_','authenticate',$paths[0]);
             
             unless ($self->has_self_url) {
-                $self->self_url($req->scheme.'://'.join('/',$req->env->{HTTP_HOST},@paths));
+                my $url = $req->scheme.'://'.join('/',$req->env->{HTTP_HOST},@paths);
+                $self->self_url($url);
             }
             
             my $coderef = $self->can($method);
