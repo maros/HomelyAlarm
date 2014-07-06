@@ -313,7 +313,7 @@ TWIML
         my ($self,$req) = @_;
         my $sid         = $req->param('AccountSid');
         my $signature   = $req->header('X-Twilio-Signature');
-        my $digest      = hmac_sha1($req->uri, $self->twilio_authtoken);
+        my $digest      = hmac_sha1_hex($req->uri, $self->twilio_authtoken);
         
         unless (defined $sid
             && $sid eq $self->twilio_sid
