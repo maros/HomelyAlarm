@@ -4,7 +4,7 @@ package App::HomelyAlarm {
     our $AUTHORITY = 'cpan:MAROS';
     our $VERSION = '1.00';
     
-    use MooseX::App::Simple qw(Color ConfigHome);
+    use MooseX::App::Simple qw(Color Config);
     
     #use Coro;
     use AnyEvent;
