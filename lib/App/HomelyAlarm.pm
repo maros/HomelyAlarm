@@ -141,7 +141,7 @@ package App::HomelyAlarm {
             my $authen  = join('_','authenticate',$paths[0]);
             
             unless ($self->has_self_url) {
-                my $url = $req->scheme.'://'.join('/',$req->env->{HTTP_HOST},@paths);
+                my $url = $req->scheme.'://'.$req->env->{HTTP_HOST};
                 $self->self_url($url);
             }
             
@@ -247,9 +247,9 @@ TWIML
             'Calls',
             From            => $self->caller_number,
             To              => $self->callee_number,
-            Url             => $self->self_url('/call/twiml'),
+            Url             => $self->self_url.'/call/twiml',
             Method          => 'GET',
-            FallbackUrl     => $self->self_url('/call/fallback'),
+            FallbackUrl     => $self->self_url.'/call/fallback',
             FallbackMethod  => 'POST',
             Record          => 'false',
             Timeout         => 60,
