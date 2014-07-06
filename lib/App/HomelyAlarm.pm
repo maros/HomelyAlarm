@@ -52,6 +52,12 @@ package App::HomelyAlarm {
         required        => 1,
     );
     
+    option 'callee_number' => (
+        is              => 'rw',
+        isa             => 'Str',
+        required        => 1,
+    );
+    
     has 'timer' => (
         is              => 'rw',
         clearer         => 'clear_timer',
@@ -81,7 +87,6 @@ package App::HomelyAlarm {
             AuthToken  => $self->twilio_authtoken,
         );
     }
-    
     
     sub run {
         my ($self) = @_;
@@ -241,7 +246,7 @@ TWIML
         $self->twilio->POST( 
             'Calls',
             From            => $self->caller_number,
-            To              => $self->caller_number,
+            To              => $self->callee_number,
             Url             => $self->self_url('/call/twiml'),
             Method          => 'GET',
             FallbackUrl     => $self->self_url('/call/fallback'),
