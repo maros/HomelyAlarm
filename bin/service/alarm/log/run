@@ -1,0 +1,4 @@
+#!/bin/sh
+
+exec setuidgid alarm multilog t /var/log/service/alarm
+
