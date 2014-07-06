@@ -13,6 +13,7 @@ package App::HomelyAlarm {
     use WWW::Twilio::API;
     use Try::Tiny;
     use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
+    use JSON::XS;
     
     option 'port' => (
         is              => 'rw',
@@ -242,9 +243,8 @@ TWIML
         $self->message($message);
         
         _log("Running alarm");
-        
-        $self->twilio->POST( 
-            'Calls',
+        my $response = $self->twilio->POST( 
+            'Calls.json',
             From            => $self->caller_number,
             To              => $self->callee_number,
             Url             => $self->self_url.'/call/twiml',
@@ -254,7 +254,45 @@ TWIML
             Record          => 'false',
             Timeout         => 60,
         );
-    } 
+        
+        if ($response->{code} == 201) {
+            my $api_response = JSON::XS::decode_json($response->{content});
+            use Data::Dumper;
+            warn Data::Dumper::Dumper($api_response);
+#{
+#      'caller_name' => undef,
+#      'to_formatted' => '+43xxxxx',
+#      'start_time' => undef,
+#      'phone_number_sid' => undef,
+#      'api_version' => '2010-04-01',
+#      'status' => 'queued',
+#      'from' => '+151xxxxx',
+#      'to' => '+43xxxxx',
+#      'uri' => '/2010-04-01/Accounts/AC6cxxxx/Calls/CAexxxx.json',
+#      'group_sid' => undef,
+#      'price' => undef,
+#      'annotation' => undef,
+#      'price_unit' => 'USD',
+#      'date_created' => undef,
+#      'forwarded_from' => undef,
+#      'parent_call_sid' => undef,
+#      'direction' => 'outbound-api',
+#      'date_updated' => undef,
+#      'subresource_uris' => {
+#          'notifications' => '/2010-04-01/Accounts/AC6cxxxx/Calls/CAexxxx/Notifications.json',
+#          'recordings' => '/2010-04-01/Accounts/AC6cxxxx/Calls/CAexxxx/Recordings.json'
+#      },
+#      'from_formatted' => '(517) 9xx-5xxx',
+#      'end_time' => undef,
+#      'duration' => undef,
+#      'answered_by' => undef,
+#      'account_sid' => 'AC6cxxxx',
+#      'sid' => 'CAexxxx'
+#};
+        } else {
+            _log("Error placing call: ".$response->{content})
+        }
+    }
     
     sub authenticate_alarm {
         my ($self,$req) = @_;
