@@ -1,8 +1,8 @@
 # -*- perl -*-
 
-# t/00_load.t - check module loading and create testing directory
+# t/basic.t - test basic usage
 
-use Test::Most tests => 36;
+use Test::Most tests => 19;
 
 use Plack::Test;
 use HTTP::Request::Common;
@@ -30,6 +30,7 @@ my $ha = App::HomelyAlarm->new(
     twilio_authtoken    => 'AUTHTOKEN',
     secret              => 'SECRET',
     caller_number       => '123456789',
+    callee_number       => '123456789',
 );
 
 my $twilio_original = $ha->twilio;
