@@ -6,15 +6,15 @@ package App::HomelyAlarm {
     
     use MooseX::App::Simple qw(Color Config);
     
-    #use Coro;
     use AnyEvent;
+    use AnyEvent::HTTP;
     use Twiggy::Server;
     use Plack::Request;
-    use WWW::Twilio::API;
     use Try::Tiny;
     use Digest::HMAC_SHA1 qw(hmac_sha1_hex hmac_sha1);
     use JSON::XS;
     use MIME::Base64 qw(encode_base64);
+    use URI::Escape qw(uri_escape);
     
     option 'port' => (
         is              => 'rw',
@@ -56,7 +56,7 @@ package App::HomelyAlarm {
     
     option 'callee_number' => (
         is              => 'rw',
-        isa             => 'Str',
+        isa             => 'ArrayRef[Str]',
         required        => 1,
     );
     
@@ -72,23 +72,10 @@ package App::HomelyAlarm {
         predicate       => 'has_message',
     );
     
-    has 'twilio' => (
-        is              => 'rw',
-        lazy_build      => 1,
-    );
-    
     has 'self_url' => (
         is              => 'rw',
         predicate       => 'has_self_url',
     );
-    
-    sub _build_twilio {
-        my ($self) = @_;
-        return WWW::Twilio::API->new(
-            AccountSid => $self->twilio_sid,
-            AuthToken  => $self->twilio_authtoken,
-        );
-    }
     
     sub run {
         my ($self) = @_;
@@ -133,6 +120,10 @@ package App::HomelyAlarm {
         
         return sub {
             my ($env)   = @_;
+
+            _log("HomelyAlarm needs a server that supports psgi.streaming and psgi.nonblocking")
+                unless $env->{'psgi.streaming'} && $env->{'psgi.nonblocking'};
+            
             my $req     = Plack::Request->new($env);
             my @paths   = grep { $_ } split('/',$req->path_info);
             
@@ -236,6 +227,50 @@ TWIML
             ],
         ];
     }
+    
+    sub run_request {
+        my ($self,$method,$action,$callback,%args) = @_;
+        
+        my $url = 'https://api.twilio.com/2010-04-01/Accounts/'.$self->twilio_sid.'/'.$action.'.json';
+        
+        my %params = (
+            timeout => 120,
+            headers => {
+                'Authorization' => 'Basic '.MIME::Base64::encode($self->twilio_sid.":".$self->twilio_authtoken, ''),
+            },
+        );
+        
+        my $content = '';
+        my @args;
+        
+        for my $key ( keys %args ) {
+            $args{$key} = ( defined $args{$key} ? $args{$key} : '' );
+            push @args, uri_escape($key) . '=' . uri_escape($args{$key});
+        }
+        $content = join('&', @args) || '';
+        
+        if( $method eq 'GET' ) {
+            $url .= '?' . $content;
+        } elsif ($method eq 'POST') {
+            $params{headers}{'Content-Type'} = 'application/x-www-form-urlencoded';
+            $params{body} = $content;
+        }
+        
+        http_request( 
+            $method,
+            $url, 
+            %params, 
+            sub {
+                my ($data,$headers) = @_;
+                my $api_response = JSON::XS::decode_json($data);
+                if ($headers->{Status} =~ /^2/) {
+                    $callback->($api_response,$headers);
+                } else {
+                    _log("Error placing call: ".$data)
+                }
+            }
+        );
+    }
 
     sub run_alarm {
         my ($self,$message) = @_;
@@ -244,22 +279,25 @@ TWIML
         $self->message($message);
         
         _log("Running alarm");
-        my $response = $self->twilio->POST( 
-            'Calls.json',
-            From            => $self->caller_number,
-            To              => $self->callee_number,
-            Url             => $self->self_url.'/call/twiml',
-            Method          => 'GET',
-            FallbackUrl     => $self->self_url.'/call/fallback',
-            FallbackMethod  => 'POST',
-            Record          => 'false',
-            Timeout         => 60,
-        );
+        foreach my $callee (@{$self->callee_number}) {
+            $self->run_request(
+                'POST',
+                'Calls',
+                sub {
+                    my ($data) = @_;
+                    ...
+                },
+                From            => $self->caller_number,
+                To              => $callee,
+                Url             => $self->self_url.'/call/twiml',
+                Method          => 'GET',
+                FallbackUrl     => $self->self_url.'/call/fallback',
+                FallbackMethod  => 'POST',
+                Record          => 'false',
+                Timeout         => 60,
+            );
+        }
         
-        if ($response->{code} == 201) {
-            my $api_response = JSON::XS::decode_json($response->{content});
-            use Data::Dumper;
-            warn Data::Dumper::Dumper($api_response);
 #{
 #      'caller_name' => undef,
 #      'to_formatted' => '+43xxxxx',
@@ -290,9 +328,7 @@ TWIML
 #      'account_sid' => 'AC6cxxxx',
 #      'sid' => 'CAexxxx'
 #};
-        } else {
-            _log("Error placing call: ".$response->{content})
-        }
+
     }
     
     sub authenticate_alarm {
