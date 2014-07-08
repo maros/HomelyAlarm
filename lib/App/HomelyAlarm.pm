@@ -12,8 +12,9 @@ package App::HomelyAlarm {
     use Plack::Request;
     use WWW::Twilio::API;
     use Try::Tiny;
-    use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
+    use Digest::HMAC_SHA1 qw(hmac_sha1_hex hmac_sha1);
     use JSON::XS;
+    use MIME::Base64 qw(encode_base64);
     
     option 'port' => (
         is              => 'rw',
@@ -313,7 +314,13 @@ TWIML
         my ($self,$req) = @_;
         my $sid         = $req->param('AccountSid');
         my $signature   = $req->header('X-Twilio-Signature');
-        my $digest      = hmac_sha1_hex($req->uri, $self->twilio_authtoken);
+        my $key         = $req->uri;
+        if ($req->method eq 'POST') {
+            my $body = $req->body_parameters;
+            $key .= join('',map { $_.$body->{$_} } sort keys %{$body});
+        }
+        my $digest      = encode_base64(hmac_sha1($key, $self->twilio_authtoken));
+        chomp($digest);
         
         unless (defined $sid
             && $sid eq $self->twilio_sid
