@@ -56,7 +56,7 @@ package App::HomelyAlarm {
     
     option 'callee_number' => (
         is              => 'rw',
-        isa             => 'Str',
+        isa             => 'ArrayRef[Str]',
         required        => 1,
     );
     
@@ -244,22 +244,28 @@ TWIML
         $self->message($message);
         
         _log("Running alarm");
-        my $response = $self->twilio->POST( 
-            'Calls.json',
-            From            => $self->caller_number,
-            To              => $self->callee_number,
-            Url             => $self->self_url.'/call/twiml',
-            Method          => 'GET',
-            FallbackUrl     => $self->self_url.'/call/fallback',
-            FallbackMethod  => 'POST',
-            Record          => 'false',
-            Timeout         => 60,
-        );
+        foreach my $callee (@{$self->callee_number}) {
+            my $response = $self->twilio->POST( 
+                'Calls.json',
+                From            => $self->caller_number,
+                To              => $callee,
+                Url             => $self->self_url.'/call/twiml',
+                Method          => 'GET',
+                FallbackUrl     => $self->self_url.'/call/fallback',
+                FallbackMethod  => 'POST',
+                Record          => 'false',
+                Timeout         => 60,
+            );
+            
+            if ($response->{code} == 201) {
+                my $api_response = JSON::XS::decode_json($response->{content});
+                use Data::Dumper;
+                print STDERR Data::Dumper::Dumper($api_response);
+            } else {
+                _log("Error placing call: ".$response->{content})
+            }
+        }
         
-        if ($response->{code} == 201) {
-            my $api_response = JSON::XS::decode_json($response->{content});
-            use Data::Dumper;
-            warn Data::Dumper::Dumper($api_response);
 #{
 #      'caller_name' => undef,
 #      'to_formatted' => '+43xxxxx',
@@ -290,9 +296,7 @@ TWIML
 #      'account_sid' => 'AC6cxxxx',
 #      'sid' => 'CAexxxx'
 #};
-        } else {
-            _log("Error placing call: ".$response->{content})
-        }
+
     }
     
     sub authenticate_alarm {
