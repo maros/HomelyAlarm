@@ -62,11 +62,8 @@ package App::HomelyAlarm {
     
     has 'timer' => (
         is              => 'rw',
-        default         => sub { [] },
-        traits          => ['Array'],
-        handles         => {
-            add_timer       => 'push',
-        }
+        predicate       => 'has_timer',
+        clearer         => 'clear_timer',
     );
     
     has 'message' => (
