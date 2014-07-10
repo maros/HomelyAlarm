@@ -2,7 +2,8 @@
 
 # t/basic.t - test basic usage
 
-use Test::Most tests => 21;
+use Test::Most tests => 21+1;
+use Test::NoWarnings;
 
 use Plack::Test;
 use HTTP::Request::Common;
@@ -14,8 +15,11 @@ use_ok( 'App::HomelyAlarm' );
     package TwilioMock;
     our $LASTCALL;
     sub POST {
-        warn "CALL POST";
         $LASTCALL = { @_ };
+        return {
+            code    => 201,
+            content => '{}',
+        }
     };
     sub get_lastcall {
         return $LASTCALL;
