@@ -62,8 +62,8 @@ package App::HomelyAlarm {
     
     has 'timer' => (
         is              => 'rw',
-        clearer         => 'clear_timer',
         predicate       => 'has_timer',
+        clearer         => 'clear_timer',
     );
     
     has 'message' => (
@@ -164,7 +164,7 @@ package App::HomelyAlarm {
         unless ($self->has_timer) {
             $self->timer(AnyEvent->timer( 
                 after   => $req->param('timer') || 60, 
-                cb      => sub { $self->run_alarm($req->param('message')) }
+                cb      => sub { $self->run_notify($req->param('message')) }
             ));
         }
             
@@ -186,17 +186,17 @@ package App::HomelyAlarm {
         
         my $message = $req->param('message');
         _log("Run immediate alarm: $message");
-        $self->run_alarm($message);
+        $self->run_notify($message);
         
         _reply_ok();
     }
     
-    sub dispatch_POST_alarm_message {
+    sub dispatch_POST_alarm_alert {
         my ($self,$req) = @_;
         
         my $message = $req->param('message');
-        _log("Run message: $message");
-        $self->run_alarm($message);
+        _log("Run alert: $message");
+        $self->run_notify($message);
         
         _reply_ok();
     }
@@ -272,7 +272,7 @@ TWIML
         );
     }
 
-    sub run_alarm {
+    sub run_notify {
         my ($self,$message) = @_;
         $self->clear_timer();
         $self->clear_message();
