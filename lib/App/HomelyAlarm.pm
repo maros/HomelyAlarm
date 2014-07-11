@@ -65,16 +65,15 @@ package App::HomelyAlarm {
         predicate       => 'has_timer',
         clearer         => 'clear_timer',
     );
-    
-    has 'message' => (
-        is              => 'rw',
-        clearer         => 'clear_message',
-        predicate       => 'has_message',
-    );
-    
+
     has 'self_url' => (
         is              => 'rw',
         predicate       => 'has_self_url',
+    );
+
+    has 'calls' => (
+        is              => 'ro',
+        default         => sub { {} },
     );
     
     sub run {
@@ -160,7 +159,6 @@ package App::HomelyAlarm {
     sub dispatch_POST_alarm_intrusion {
         my ($self,$req) = @_;
         
-        #$self->message($req->param('message'));
         unless ($self->has_timer) {
             $self->timer(AnyEvent->timer( 
                 after   => $req->param('timer') || 60, 
@@ -176,7 +174,6 @@ package App::HomelyAlarm {
         
         _log("Reset alarm intrusion timer");
         
-        $self->clear_message();
         $self->clear_timer();
         return _reply_ok();
     }
@@ -203,9 +200,7 @@ package App::HomelyAlarm {
     
     sub dispatch_POST_call_fallback {
         my ($self,$req) = @_;
-        
-        my $message = $self->message || 'Unknown reason';
-        
+        # TODO terminate call
         _log("Call failed");
         
     }
@@ -213,7 +208,8 @@ package App::HomelyAlarm {
     sub dispatch_GET_call_twiml {
         my ($self,$req) = @_;
         
-        my $message = $self->message || 'Unknown reason';
+	# TODO get call message
+	my $message;
         return [
             200,
             [ 'Content-Type' => 'text/xml' ],
@@ -229,7 +225,11 @@ TWIML
     }
     
     sub run_request {
-        my ($self,$method,$action,$callback,%args) = @_;
+	my $self = shift;
+	my $method = shift;
+	my $action = shift;
+	my $callback = pop;
+	my %args = @_;
         
         my $url = 'https://api.twilio.com/2010-04-01/Accounts/'.$self->twilio_sid.'/'.$action.'.json';
         
@@ -275,18 +275,13 @@ TWIML
     sub run_notify {
         my ($self,$message) = @_;
         $self->clear_timer();
-        $self->clear_message();
-        $self->message($message);
         
+	my $timestamp = time();
         _log("Running alarm");
         foreach my $callee (@{$self->callee_number}) {
             $self->run_request(
                 'POST',
                 'Calls',
-                sub {
-                    my ($data) = @_;
-                    ...
-                },
                 From            => $self->caller_number,
                 To              => $callee,
                 Url             => $self->self_url.'/call/twiml',
@@ -295,40 +290,17 @@ TWIML
                 FallbackMethod  => 'POST',
                 Record          => 'false',
                 Timeout         => 60,
+                sub {
+                    my ($data,$headers) = @_;
+                    $self->register_call(
+                        $data->{sid},
+                        to          => $data->{to_formated},
+                        message     => $message,
+                        timestamp   => $timestamp,
+                    );
+                },
             );
         }
-        
-#{
-#      'caller_name' => undef,
-#      'to_formatted' => '+43xxxxx',
-#      'start_time' => undef,
-#      'phone_number_sid' => undef,
-#      'api_version' => '2010-04-01',
-#      'status' => 'queued',
-#      'from' => '+151xxxxx',
-#      'to' => '+43xxxxx',
-#      'uri' => '/2010-04-01/Accounts/AC6cxxxx/Calls/CAexxxx.json',
-#      'group_sid' => undef,
-#      'price' => undef,
-#      'annotation' => undef,
-#      'price_unit' => 'USD',
-#      'date_created' => undef,
-#      'forwarded_from' => undef,
-#      'parent_call_sid' => undef,
-#      'direction' => 'outbound-api',
-#      'date_updated' => undef,
-#      'subresource_uris' => {
-#          'notifications' => '/2010-04-01/Accounts/AC6cxxxx/Calls/CAexxxx/Notifications.json',
-#          'recordings' => '/2010-04-01/Accounts/AC6cxxxx/Calls/CAexxxx/Recordings.json'
-#      },
-#      'from_formatted' => '(517) 9xx-5xxx',
-#      'end_time' => undef,
-#      'duration' => undef,
-#      'answered_by' => undef,
-#      'account_sid' => 'AC6cxxxx',
-#      'sid' => 'CAexxxx'
-#};
-
     }
     
     sub authenticate_alarm {
@@ -393,6 +365,16 @@ TWIML
             [ 'Content-Type' => 'text/plain' ],
             [ "Error:".$code ],
         ];
+    }
+
+    sub register_call {
+        my ($self,$sid,%call) = @_;
+        $self->calls->{$sid} = \%call;
+    }
+    
+    sub get_call {
+        my ($self,$sid) = @_;
+        # TODO get call
     }
 }
 
