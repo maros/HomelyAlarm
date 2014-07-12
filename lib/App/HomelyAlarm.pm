@@ -347,7 +347,7 @@ TWIML
     
     sub _log {
         my ($message) = @_;
-        say "[LOG] $message";
+        say STDERR "[LOG] $message";
     }
     
     sub _reply_ok {
