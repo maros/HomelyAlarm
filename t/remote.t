@@ -6,6 +6,7 @@ use Test::Most tests => 36;
 
 use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
 use App::HomelyAlarm;
+use LWP::UserAgent;
 
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
