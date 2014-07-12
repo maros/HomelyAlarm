@@ -73,12 +73,15 @@ package App::HomelyAlarm {
         predicate       => 'has_self_url',
     );
 
+    our $INSTANCE;
     
     sub run {
         my ($self) = @_;
  
         # Initalize condvar
         my $cv = AnyEvent->condvar;
+        
+        $INSTANCE = $self;
         
         # Signal handler
         my $term_signal = AnyEvent->signal(
@@ -106,10 +109,16 @@ package App::HomelyAlarm {
         
         # Register service
         $server->register_service($self->app);
-         
+        
         $cv->recv;
         
+        $INSTANCE = undef;
+        
         _log('End loop');
+    }
+    
+    sub app_instance {
+        return $INSTANCE;
     }
     
     sub app {
@@ -371,6 +380,7 @@ TWIML
         ];
     }
     
+    __PACKAGE__->meta->make_immutable;
 }
 
 1;
