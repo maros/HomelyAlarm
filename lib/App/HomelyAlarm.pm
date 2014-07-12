@@ -6,6 +6,8 @@ package App::HomelyAlarm {
     
     use MooseX::App::Simple qw(Color Config);
     
+    use App::HomelyAlarm::Call;
+    
     use AnyEvent;
     use AnyEvent::HTTP;
     use Twiggy::Server;
@@ -71,10 +73,6 @@ package App::HomelyAlarm {
         predicate       => 'has_self_url',
     );
 
-    has 'calls' => (
-        is              => 'ro',
-        default         => sub { {} },
-    );
     
     sub run {
         my ($self) = @_;
@@ -200,16 +198,24 @@ package App::HomelyAlarm {
     
     sub dispatch_POST_call_fallback {
         my ($self,$req) = @_;
-        # TODO terminate call
+        
+        my $call = App::HomelyAlarm::Call->remove_call($req->param('CallSid'));
+        return _reply_error(404)
+            unless $call;
+        
         _log("Call failed");
         
+        # TODO send fallback SMS
     }
     
     sub dispatch_GET_call_twiml {
         my ($self,$req) = @_;
         
-        # TODO get call message
-        my $message;
+        my $call = App::HomelyAlarm::Call->get_call($req->param('CallSid'));
+        return _reply_error(404)
+            unless $call;
+        
+        my $message = $call->message;
         return [
             200,
             [ 'Content-Type' => 'text/xml' ],
@@ -276,7 +282,6 @@ TWIML
         my ($self,$message) = @_;
         $self->clear_timer();
         
-        my $timestamp = time();
         _log("Running alarm");
         foreach my $callee (@{$self->callee_number}) {
             $self->run_request(
@@ -292,11 +297,10 @@ TWIML
                 Timeout         => 60,
                 sub {
                     my ($data,$headers) = @_;
-                    $self->register_call(
-                        $data->{sid},
-                        to          => $data->{to_formated},
-                        message     => $message,
-                        timestamp   => $timestamp,
+                    App::HomelyAlarm::Call->new(
+                        message => $message, 
+                        callee  => $data->{to_formatted},
+                        sid     => $data->{sid},
                     );
                 },
             );
@@ -366,16 +370,7 @@ TWIML
             [ "Error:".$code ],
         ];
     }
-
-    sub register_call {
-        my ($self,$sid,%call) = @_;
-        $self->calls->{$sid} = \%call;
-    }
     
-    sub get_call {
-        my ($self,$sid) = @_;
-        # TODO get call
-    }
 }
 
 1;
