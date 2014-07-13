@@ -13,9 +13,11 @@ perl_version    '5.014';
  
 # Specific dependencies
 requires        'Moose'                         => '2.00';
-requires        'AnyEvent'                      => 0;
 requires        'Twiggy'                        => 0;
-requires        'WWW::Twilio::API'              => 0;
+requires        'AnyEvent::HTTP'                => 0;
+requires        'Digest::HMAC_SHA1'             => 0;
+requires        'JSON::XS'                      => 0;
+srequires        'URI::Escape'                   => 0;
 
 build_requires  'Test::Most'                    => 0;
 build_requires  'Test::NoWarnings'              => 0;

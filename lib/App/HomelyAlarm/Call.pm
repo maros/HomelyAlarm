@@ -1,7 +1,6 @@
 package App::HomelyAlarm::Call {
     use 5.014; 
 
-    use namespace::autoclean;
     use Moose;
     
     our %INSTANCES;

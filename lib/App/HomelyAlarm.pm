@@ -8,16 +8,15 @@ package App::HomelyAlarm {
     
     use App::HomelyAlarm::Call;
     
-    use AnyEvent;
     use AnyEvent::HTTP;
     use Twiggy::Server;
+    use AnyEvent;
     use Plack::Request;
     use Try::Tiny;
-    use Digest::HMAC_SHA1 qw(hmac_sha1_hex hmac_sha1);
     use JSON::XS;
+    use Digest::HMAC_SHA1 qw(hmac_sha1_hex hmac_sha1);
     use MIME::Base64 qw(encode_base64);
     use URI::Escape qw(uri_escape);
-    use Data::Dumper;
     
     option 'port' => (
         is              => 'rw',
