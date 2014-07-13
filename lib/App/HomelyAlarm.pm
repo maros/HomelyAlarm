@@ -17,6 +17,7 @@ package App::HomelyAlarm {
     use JSON::XS;
     use MIME::Base64 qw(encode_base64);
     use URI::Escape qw(uri_escape);
+    use Data::Dumper;
     
     option 'port' => (
         is              => 'rw',
@@ -133,8 +134,9 @@ package App::HomelyAlarm {
             my $req     = Plack::Request->new($env);
             my @paths   = grep { $_ } split('/',$req->path_info);
             
-            return _reply_error(404)
-                unless scalar @paths;
+            return _reply_error(404,"Not Found",$req)
+                if scalar @paths != 2
+                || $req->path_info =~ /_/;
             
             my $method  = join('_','dispatch',$req->method,@paths);
             my $authen  = join('_','authenticate',$paths[0]);
@@ -147,7 +149,7 @@ package App::HomelyAlarm {
             my $coderef = $self->can($method);
             if ($coderef) {
                 if ($self->can($authen) && ! $self->$authen($req)) {
-                    return _reply_error(401);
+                    return _reply_error(401,"Not authorized",$req);
                 }
                 _log("Handling $method");
                 
@@ -155,10 +157,10 @@ package App::HomelyAlarm {
                     return $self->$coderef($req);
                 } catch {
                     _log("Error processing $method: $_");
-                    return _reply_error(500)
+                    return _reply_error(500,"Internal Server Error",$req)
                 }
             } else {
-                return _reply_error(404)
+                return _reply_error(404,"Not Found",$req)
             }
         };
     }
@@ -205,23 +207,53 @@ package App::HomelyAlarm {
         _reply_ok();
     }
     
-    sub dispatch_POST_call_fallback {
+    sub dispatch_POST_call_status {
         my ($self,$req) = @_;
         
-        my $call = App::HomelyAlarm::Call->remove_call($req->param('CallSid'));
-        return _reply_error(404)
-            unless $call;
+        my $sid;
         
-        _log("Call failed");
-        
-        # TODO send fallback SMS
+        if ($sid = $req->param('CallSid')) {
+            my $call = App::HomelyAlarm::Call->remove_call($sid);
+            return _reply_error(404,"Call not found",$req)
+                unless $call;
+            
+            _log("Call status ".$call->callee.": ".$req->param('CallStatus'));
+            if ($req->param('CallStatus') ne 'completed') {
+                # send fallback SMS
+                $self->run_request(
+                    'POST',
+                    'Messages',
+                    From            => $self->caller_number,
+                    To              => $call->callee,
+                    Body            => $call->message,
+                    StatusCallback  => $self->self_url.'/call/status',
+                    StatusMethod    => 'POST',
+                    sub {
+                        my ($data,$headers) = @_;
+                        App::HomelyAlarm::Call->new(
+                            message => $call->message, 
+                            callee  => $call->callee,
+                            sid     => $data->{sid},
+                        );
+                    },
+                )
+            }
+        } elsif ($sid = $req->param('SmsSid')) {
+            my $call = App::HomelyAlarm::Call->remove_call($sid);
+            return _reply_error(404,"SMS not found",$req)
+                unless $call;
+            
+            _log("SMS status ".$call->callee.": ".$req->param('SmsStatus'));
+        } else {
+            _reply_error(404,"Missing parameters",$req)
+        }
     }
     
     sub dispatch_GET_call_twiml {
         my ($self,$req) = @_;
         
         my $call = App::HomelyAlarm::Call->get_call($req->param('CallSid'));
-        return _reply_error(404)
+        return _reply_error(404,"Call not found",$req)
             unless $call;
         
         my $message = $call->message;
@@ -271,21 +303,27 @@ TWIML
             $params{body} = $content;
         }
         
-        http_request( 
+        _log("Twilio request $method $url");
+        
+        my $guard;
+        $guard = http_request( 
             $method,
             $url, 
             %params, 
             sub {
                 my ($data,$headers) = @_;
+                $guard = undef;
                 my $api_response = JSON::XS::decode_json($data);
                 if ($headers->{Status} =~ /^2/) {
                     $callback->($api_response,$headers);
                 } else {
                     _log("Error placing call: ".$data)
                 }
+
             }
         );
     }
+    
 
     sub run_notify {
         my ($self,$message) = @_;
@@ -300,8 +338,8 @@ TWIML
                 To              => $callee,
                 Url             => $self->self_url.'/call/twiml',
                 Method          => 'GET',
-                FallbackUrl     => $self->self_url.'/call/fallback',
-                FallbackMethod  => 'POST',
+                StatusCallback  => $self->self_url.'/call/status',
+                StatusMethod    => 'POST',
                 Record          => 'false',
                 Timeout         => 60,
                 sub {
@@ -370,9 +408,9 @@ TWIML
     }
     
     sub _reply_error {
-        my ($code) = @_;
+        my ($code,$message,$req) = @_;
         
-        _log("Invalid request: $code");
+        _log("Invalid request to ".$req->uri.": $message ($code)");
         return [
             $code,
             [ 'Content-Type' => 'text/plain' ],
