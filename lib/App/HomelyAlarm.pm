@@ -414,7 +414,7 @@ TWIML
         return [
             $code,
             [ 'Content-Type' => 'text/plain' ],
-            [ "Error:".$code ],
+            [ "Error:$code\n$message" ],
         ];
     }
     
