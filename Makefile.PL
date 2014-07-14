@@ -17,7 +17,7 @@ requires        'Twiggy'                        => 0;
 requires        'AnyEvent::HTTP'                => 0;
 requires        'Digest::HMAC_SHA1'             => 0;
 requires        'JSON::XS'                      => 0;
-srequires        'URI::Escape'                   => 0;
+requires        'URI::Escape'                   => 0;
 
 build_requires  'Test::Most'                    => 0;
 build_requires  'Test::NoWarnings'              => 0;
