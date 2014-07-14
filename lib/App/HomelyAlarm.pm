@@ -364,7 +364,7 @@ TWIML
                 if ($signature eq $digest);
         }
         
-        _log('Could not authenticate call');
+        _log('Could not authenticate alarm');
         return 0;
     }
     
