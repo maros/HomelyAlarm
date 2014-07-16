@@ -15,6 +15,11 @@ package App::HomelyAlarm::Call {
         required=> 1,
     );
     
+    has 'severity' => (
+        is      => 'rw',
+        default => 'high',
+    );
+    
     has 'time' => (
         is      => 'ro',
         default => sub {

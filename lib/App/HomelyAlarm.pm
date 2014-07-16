@@ -168,9 +168,14 @@ package App::HomelyAlarm {
         my ($self,$req) = @_;
         
         unless ($self->has_timer) {
+            my $message = $req->param('message');
+            my $severity = $req->param('severity');
+            
             $self->timer(AnyEvent->timer( 
                 after   => $req->param('timer') || 60, 
-                cb      => sub { $self->run_notify($req->param('message')) }
+                cb      => sub { 
+                    $self->run_notify($message,$severity) 
+                }
             ));
         }
             
@@ -190,21 +195,14 @@ package App::HomelyAlarm {
         my ($self,$req) = @_;
         
         my $message = $req->param('message');
+        my $severity = $req->param('severity');
         _log("Run immediate alarm: $message");
-        $self->run_notify($message);
+        $self->run_notify($message,$severity);
         
         _reply_ok();
     }
     
-    sub dispatch_POST_alarm_alert {
-        my ($self,$req) = @_;
-        
-        my $message = $req->param('message');
-        _log("Run alert: $message");
-        $self->run_notify($message);
-        
-        _reply_ok();
-    }
+    *dispatch_POST_alarm_alert = \&dispatch_POST_alarm_run;
     
     sub dispatch_POST_call_status {
         my ($self,$req) = @_;
@@ -325,7 +323,7 @@ TWIML
     
 
     sub run_notify {
-        my ($self,$message) = @_;
+        my ($self,$message,$severity) = @_;
         $self->clear_timer();
         
         _log("Running alarm");
@@ -347,9 +345,12 @@ TWIML
                         message => $message, 
                         callee  => $data->{to_formatted},
                         sid     => $data->{sid},
+                        severity=> $severity,
                     );
                 },
             );
+            
+            
         }
     }
     
