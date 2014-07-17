@@ -18,6 +18,27 @@ package App::HomelyAlarm {
     use MIME::Base64 qw(encode_base64);
     use URI::Escape qw(uri_escape);
     
+    use Moose::Util::TypeConstraints;
+    use Data::Dumper;
+ 
+    subtype 'App::HomelyAlarm::CalleeList',
+        as 'ArrayRef[HashRef]',
+        where {
+            return 0
+                unless scalar @{$_};
+            return 0
+                if grep { ! defined $_->{number} } @{$_};
+            return 1;
+        };
+        
+    coerce 'App::HomelyAlarm::CalleeList',
+        from 'ArrayRef[Str]',
+        via {
+            return [ map { { number  => $_ } } @$_ ];
+        };
+    
+    no Moose::Util::TypeConstraints;
+    
     option 'port' => (
         is              => 'rw',
         isa             => 'Int',
@@ -58,8 +79,9 @@ package App::HomelyAlarm {
     
     option 'callee_number' => (
         is              => 'rw',
-        isa             => 'ArrayRef[Str]',
+        isa             => 'App::HomelyAlarm::CalleeList',
         required        => 1,
+        coerce          => 1,
     );
     
     has 'timer' => (
