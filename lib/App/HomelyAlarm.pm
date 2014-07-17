@@ -169,7 +169,7 @@ package App::HomelyAlarm {
         
         unless ($self->has_timer) {
             my $message = $req->param('message');
-            my $severity = $req->param('severity');
+            my $severity = $req->param('severity') || "high";
             
             $self->timer(AnyEvent->timer( 
                 after   => $req->param('timer') || 60, 
@@ -195,7 +195,7 @@ package App::HomelyAlarm {
         my ($self,$req) = @_;
         
         my $message = $req->param('message');
-        my $severity = $req->param('severity');
+        my $severity = $req->param('severity') || "high";
         _log("Run immediate alarm: $message");
         $self->run_notify($message,$severity);
         
@@ -217,23 +217,7 @@ package App::HomelyAlarm {
             _log("Call status ".$call->callee.": ".$req->param('CallStatus'));
             if ($req->param('CallStatus') ne 'completed') {
                 # send fallback SMS
-                $self->run_request(
-                    'POST',
-                    'Messages',
-                    From            => $self->caller_number,
-                    To              => $call->callee,
-                    Body            => $call->message,
-                    StatusCallback  => $self->self_url.'/call/status',
-                    StatusMethod    => 'POST',
-                    sub {
-                        my ($data,$headers) = @_;
-                        App::HomelyAlarm::Call->new(
-                            message => $call->message, 
-                            callee  => $call->callee,
-                            sid     => $data->{sid},
-                        );
-                    },
-                )
+                $self->run_sms($call->callee,$call->message,$call->severity);
             }
         } elsif ($sid = $req->param('SmsSid')) {
             my $call = App::HomelyAlarm::Call->remove_call($sid);
@@ -321,36 +305,66 @@ TWIML
         );
     }
     
+    sub run_sms {
+        my ($self,$callee,$message,$severity) = @_;
+        
+        $self->run_request(
+            'POST',
+            'Messages',
+            From            => $self->caller_number,
+            To              => $callee,
+            Body            => $message,
+            StatusCallback  => $self->self_url.'/call/status',
+            StatusMethod    => 'POST',
+            sub {
+                my ($data,$headers) = @_;
+                App::HomelyAlarm::Call->new(
+                    message     => $message, 
+                    callee      => $callee,
+                    sid         => $data->{sid},
+                    severity    => $severity,
+                );
+            },
+        )
+    }
+    
+    sub run_call {
+        my ($self,$callee,$message,$severity) = @_;
+        
+        $self->run_request(
+            'POST',
+            'Calls',
+            From            => $self->caller_number,
+            To              => $callee,
+            Url             => $self->self_url.'/call/twiml',
+            Method          => 'GET',
+            StatusCallback  => $self->self_url.'/call/status',
+            StatusMethod    => 'POST',
+            Record          => 'false',
+            Timeout         => 60,
+            sub {
+                my ($data,$headers) = @_;
+                App::HomelyAlarm::Call->new(
+                    message => $message, 
+                    callee  => $data->{to_formatted},
+                    sid     => $data->{sid},
+                    severity=> $severity,
+                );
+            },
+        );
+    }
 
     sub run_notify {
         my ($self,$message,$severity) = @_;
         $self->clear_timer();
-        
         _log("Running alarm");
+        
         foreach my $callee (@{$self->callee_number}) {
-            $self->run_request(
-                'POST',
-                'Calls',
-                From            => $self->caller_number,
-                To              => $callee,
-                Url             => $self->self_url.'/call/twiml',
-                Method          => 'GET',
-                StatusCallback  => $self->self_url.'/call/status',
-                StatusMethod    => 'POST',
-                Record          => 'false',
-                Timeout         => 60,
-                sub {
-                    my ($data,$headers) = @_;
-                    App::HomelyAlarm::Call->new(
-                        message => $message, 
-                        callee  => $data->{to_formatted},
-                        sid     => $data->{sid},
-                        severity=> $severity,
-                    );
-                },
-            );
-            
-            
+            if ($severity eq 'low') {
+                $self->run_sms($message,$severity,$callee);
+            } else {
+                $self->run_call($message,$severity,$callee);
+            }
         }
     }
     
