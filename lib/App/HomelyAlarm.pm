@@ -21,7 +21,7 @@ package App::HomelyAlarm {
     use Moose::Util::TypeConstraints;
     use Data::Dumper;
  
-    subtype 'App::HomelyAlarm::CalleeList',
+    subtype 'App::HomelyAlarm::RecipientList',
         as 'ArrayRef[HashRef]',
         where {
             return 0
@@ -31,7 +31,7 @@ package App::HomelyAlarm {
             return 1;
         };
         
-    coerce 'App::HomelyAlarm::CalleeList',
+    coerce 'App::HomelyAlarm::RecipientList',
         from 'ArrayRef[Str]',
         via {
             return [ map { { number  => $_ } } @$_ ];
@@ -77,9 +77,9 @@ package App::HomelyAlarm {
         required        => 1,
     );
     
-    option 'callee_number' => (
+    option 'recipients' => (
         is              => 'rw',
-        isa             => 'App::HomelyAlarm::CalleeList',
+        isa             => 'App::HomelyAlarm::RecipientList',
         required        => 1,
         coerce          => 1,
     );
@@ -381,7 +381,7 @@ TWIML
         $self->clear_timer();
         _log("Running alarm");
         
-        foreach my $callee (@{$self->callee_number}) {
+        foreach my $callee (@{$self->recipients}) {
             if ($severity eq 'low') {
                 $self->run_sms($message,$severity,$callee);
             } else {
