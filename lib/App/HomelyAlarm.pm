@@ -226,7 +226,7 @@ package App::HomelyAlarm {
     
     *dispatch_POST_alarm_alert = \&dispatch_POST_alarm_run;
     
-    sub dispatch_POST_call_status {
+    sub dispatch_POST_twilio_status {
         my ($self,$req) = @_;
         
         my $sid;
@@ -252,7 +252,7 @@ package App::HomelyAlarm {
         }
     }
     
-    sub dispatch_GET_call_twiml {
+    sub dispatch_GET_twilio_twiml {
         my ($self,$req) = @_;
         
         my $call = App::HomelyAlarm::Call->get_call($req->param('CallSid'));
@@ -336,7 +336,7 @@ TWIML
             From            => $self->caller_number,
             To              => $callee,
             Body            => $message,
-            StatusCallback  => $self->self_url.'/call/status',
+            StatusCallback  => $self->self_url.'/twilio/status',
             StatusMethod    => 'POST',
             sub {
                 my ($data,$headers) = @_;
@@ -358,9 +358,9 @@ TWIML
             'Calls',
             From            => $self->caller_number,
             To              => $callee,
-            Url             => $self->self_url.'/call/twiml',
+            Url             => $self->self_url.'/twilio/twiml',
             Method          => 'GET',
-            StatusCallback  => $self->self_url.'/call/status',
+            StatusCallback  => $self->self_url.'/twilio/status',
             StatusMethod    => 'POST',
             Record          => 'false',
             Timeout         => 60,
@@ -405,7 +405,7 @@ TWIML
         return 0;
     }
     
-    sub authenticate_call {
+    sub authenticate_twilio {
         my ($self,$req) = @_;
         my $sid         = $req->param('AccountSid');
         my $signature   = $req->header('X-Twilio-Signature');
