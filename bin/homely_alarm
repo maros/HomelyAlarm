@@ -8,4 +8,4 @@ use FindBin qw();
 use lib "$FindBin::Bin/../lib";
 
 use App::HomelyAlarm;
-App::HomelyAlarm->new_with_options->run();
+App::HomelyAlarm->new_with_command->run();

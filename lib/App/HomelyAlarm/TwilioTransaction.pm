@@ -1,4 +1,4 @@
-package App::HomelyAlarm::Call {
+package App::HomelyAlarm::TwilioTransaction {
     use 5.014; 
 
     use Moose;
@@ -42,17 +42,17 @@ package App::HomelyAlarm::Call {
         delete $INSTANCES{$self->sid};
     }
     
-    sub all_calls {
+    sub all_transactions {
         my ($class) = @_;
         return keys %INSTANCES;
     }
     
-    sub get_call {
+    sub get_transactions {
         my ($class,$sid) = @_;
         return $INSTANCES{$sid};
     }
     
-    sub remove_call {
+    sub remove_transactions {
         my ($class,$sid) = @_;
         return delete $INSTANCES{$sid};
     }
