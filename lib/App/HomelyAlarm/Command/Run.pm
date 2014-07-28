@@ -310,11 +310,11 @@ TWIML
     }
     
     sub run_email {
-        my ($self,$email,$message,$severity) = @_;
+        my ($self,$recipient,$message,$severity) = @_;
         
         Email::Stuffer
             ->from($self->sender_email)
-            ->to($email)
+            ->to($recipient->email)
             ->subject('HomelyAlarmAlert:'.$message)
             ->text_body(qq[
                 Message:  $message
@@ -326,13 +326,13 @@ TWIML
     }
     
     sub run_sms {
-        my ($self,$number,$message,$severity) = @_;
+        my ($self,$recipient,$message,$severity) = @_;
         
         $self->run_request(
             'POST',
             'Messages',
             From            => $self->caller_number,
-            To              => $number,
+            To              => $recipient->telephone,
             Body            => $message,
             StatusCallback  => $self->self_url.'/twilio/status',
             StatusMethod    => 'POST',
@@ -349,13 +349,13 @@ TWIML
     }
     
     sub run_call {
-        my ($self,$number,$message,$severity) = @_;
+        my ($self,$recipient,$message,$severity) = @_;
         
         $self->run_request(
             'POST',
             'Calls',
             From            => $self->caller_number,
-            To              => $number,
+            To              => $recipient->telephone,
             Url             => $self->self_url.'/twilio/twiml',
             Method          => 'GET',
             StatusCallback  => $self->self_url.'/twilio/status',
@@ -379,16 +379,16 @@ TWIML
         $self->clear_timer();
         _log("Running alarm");
         
-        foreach my $recipient (@{$self->recipients}) {
+        foreach my $recipient ($self->recipients_list) {
             given ($severity) {
                 when ('low') {
-                    $self->run_email($message,$severity,$recipient->{email});
+                    $self->run_email($message,$severity,$recipient);
                 }
                 when ('medium') {
-                    $self->run_sms($message,$severity,$recipient->{number});
+                    $self->run_sms($message,$severity,$recipient);
                 }
                 when ('high') {
-                    $self->run_call($message,$severity,$recipient->{number});
+                    $self->run_call($message,$severity,$recipient);
                 }
             }
         }
