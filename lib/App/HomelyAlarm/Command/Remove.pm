@@ -7,10 +7,28 @@ package App::HomelyAlarm::Command::Remove {
     
     option '+telephone' => ();
     option '+email' => ();
-    option '+only_vacation' => ( default => 0 );
+    option '+only_vacation' => ();
+    option '+only_call' => ();
     
     sub run {
-        # TODO Run add recipient
+        my ($self) = @_;
+        $self->format();
+        
+        my @new_recipients;
+        my ($total,$found) = (0,0);
+        foreach my $recipient ($self->recipients_list) {
+            $total++;
+            if ($self->compare_all($recipient)) {
+                say "Removing recipient ".$recipient->stringify;
+                $found++;
+                next;
+            }
+            push(@new_recipients,$recipient);
+        }
+        say "Removed $found out of $total recipients";
+        
+        $self->recipients(\@new_recipients);
+        $self->write_recipients;
     }
     
     __PACKAGE__->meta->make_immutable;

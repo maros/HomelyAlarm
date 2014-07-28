@@ -8,9 +8,23 @@ package App::HomelyAlarm::Command::List {
     option '+telephone' => ();
     option '+email' => ();
     option '+only_vacation' => ();
+    option '+only_call' => ();
     
     sub run {
-        # TODO Run add recipient
+        my ($self) = @_;
+        $self->format();
+        
+        my ($total,$found) = (0,0);
+        foreach my $recipient ($self->recipients_list) {
+            $total++;
+            next
+                unless $self->compare_all($recipient);
+            $found++;
+            say $recipient->stringify;
+            say 
+            say "-" x $MooseX::App::Utils::SCREEN_WIDTH;
+        }
+        say "Found $found out of $total recipients";
     }
     
     __PACKAGE__->meta->make_immutable;
