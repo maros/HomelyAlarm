@@ -10,12 +10,12 @@ use HTTP::Request::Common;
 use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
 use MIME::Base64 qw(encode_base64);
 
-use_ok( 'App::HomelyAlarm' ); 
+use_ok( 'App::HomelyAlarm::Command::Run' ); 
 
 {
     package App::HomelyAlarm::Test;
     use Moose;
-    extends qw(App::HomelyAlarm);
+    extends qw(App::HomelyAlarm::Command::Run);
     
     has 'last_request' => (
         is      => 'rw',
@@ -36,11 +36,13 @@ use_ok( 'App::HomelyAlarm' );
 }
 
 my $ha = App::HomelyAlarm::Test->new(
+    
     twilio_sid          => 'SID',
     twilio_authtoken    => 'AUTHTOKEN',
     secret              => 'SECRET',
     caller_number       => '123456789',
-    callee_number       => ['123456789'],
+    recipients          => ['123456789'],
+    sender_email        => 'homely_alarm@cpan.org',
 );
 
 my $test = Plack::Test->create($ha->app);
