@@ -28,8 +28,9 @@ package App::HomelyAlarm::TwilioTransaction {
         }
     );
     
-    has 'callee' => (
+    has 'recipient' => (
         is      => 'ro',
+        isa     => 'App::HomelyAlarm::Recipient',
         required=> 1,
     );
     

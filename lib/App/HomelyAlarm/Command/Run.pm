@@ -1,6 +1,7 @@
 package App::HomelyAlarm::Command::Run {
     use 5.014;
     
+    use App::HomelyAlarm;
     use MooseX::App::Command;
     extends qw(App::HomelyAlarm);
     
