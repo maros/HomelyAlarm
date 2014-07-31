@@ -4,16 +4,11 @@ package App::HomelyAlarm {
     our $AUTHORITY = 'cpan:MAROS';
     our $VERSION = '1.00';
     
+    use App::HomelyAlarm::Utils;
+    
     use MooseX::App qw(Color Config);
     app_namespace 'App::HomelyAlarm::Command';
-    
-    BEGIN {
-        use Moose::Util::TypeConstraints;
-        subtype 'App::HomelyAlarm::Type::Severity',
-            as enum([qw(low medium high)]);
-        
-        no Moose::Util::TypeConstraints;
-    }
+    app_strict(1);
     
     use App::HomelyAlarm::MessageLog;
     use App::HomelyAlarm::Recipient;
