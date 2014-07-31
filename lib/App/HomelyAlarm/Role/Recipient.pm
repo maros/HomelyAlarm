@@ -46,6 +46,11 @@ package App::HomelyAlarm::Role::Recipient {
                 unless $self->only_vacation == $other->only_vacation;
         }
         
+        if ($self->has_severity) {
+            return 0
+                unless $self->severity eq $other->severity;
+        }
+        
         if ($self->has_only_call) {
             return 0
                 unless $self->only_call == $other->only_call;
@@ -139,7 +144,7 @@ package App::HomelyAlarm::Role::Recipient {
         if ($self->only_vacation) {
             push(@flags,'alert only during vacations');
         }
-        if ($self->has_severity) {
+        if ($self->has_severity && $self->severity ne 'low') {
             push(@flags,'only '.$self->severity.' severity');
         }
         
@@ -148,6 +153,13 @@ package App::HomelyAlarm::Role::Recipient {
             $return .= ' ('.join(', ',@flags).')';
         }
         return $return;
+    }
+    
+    sub severity_level {
+        my ($self) = @_;
+        return 99
+            unless $self->has_severity;
+        return App::HomelyAlarm::Utils::severity_level($self->severity);
     }
 }
 

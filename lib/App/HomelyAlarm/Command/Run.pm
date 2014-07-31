@@ -382,7 +382,12 @@ TWIML
         
         $severity //= 'medium';
         
+        my $severity_level = App::HomelyAlarm::Utils::severity_level($severity);
+        
+        RECIPIENT:
         foreach my $recipient ($self->recipients_list) {
+            next
+                if $recipient->severity_level < $severity_level;
             given ($severity) {
                 when ('low') {
                     $self->run_email($recipient,$message,$severity);
