@@ -31,6 +31,13 @@ package App::HomelyAlarm::Role::Recipient {
         predicate       => 'has_only_call',
     );
     
+    has 'severity' => (
+        is              => 'rw',
+        isa             => 'App::HomelyAlarm::Type::Severity',
+        documentation   => 'Specify severity level',
+        predicate       => 'has_severity',
+    );
+    
     sub compare_all {
         my ($self,$other) = @_;
         
@@ -131,6 +138,9 @@ package App::HomelyAlarm::Role::Recipient {
         }
         if ($self->only_vacation) {
             push(@flags,'alert only during vacations');
+        }
+        if ($self->has_severity) {
+            push(@flags,'only '.$self->severity.' severity');
         }
         
         my $return = join(', ',@contact);

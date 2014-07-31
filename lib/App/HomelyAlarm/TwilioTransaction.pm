@@ -17,6 +17,7 @@ package App::HomelyAlarm::TwilioTransaction {
     
     has 'severity' => (
         is      => 'rw',
+        isa     => 'App::HomelyAlarm::Type::Severity',
         default => 'high',
     );
     

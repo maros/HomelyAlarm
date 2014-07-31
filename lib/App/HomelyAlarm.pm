@@ -7,6 +7,15 @@ package App::HomelyAlarm {
     use MooseX::App qw(Color Config);
     app_namespace 'App::HomelyAlarm::Command';
     
+    BEGIN {
+        use Moose::Util::TypeConstraints;
+        subtype 'App::HomelyAlarm::Type::Severity',
+            as enum([qw(low medium high)]);
+        
+        no Moose::Util::TypeConstraints;
+    }
+    
+    use App::HomelyAlarm::MessageLog;
     use App::HomelyAlarm::Recipient;
     use Sereal::Encoder qw(encode_sereal);
     use Sereal::Decoder qw(decode_sereal);

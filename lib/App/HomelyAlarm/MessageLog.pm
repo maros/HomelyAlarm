@@ -21,6 +21,12 @@ package App::HomelyAlarm::MessageLog {
         required    => 1,
     );
     
+    has 'severity' => (
+        is          => 'ro',
+        isa         => 'App::HomelyAlarm::Type::Severity',
+        required    => 1,
+    );
+    
     __PACKAGE__->meta->make_immutable;
 }
 

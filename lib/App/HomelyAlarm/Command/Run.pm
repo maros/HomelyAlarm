@@ -379,6 +379,8 @@ TWIML
         $self->clear_timer();
         _log("Running alarm");
         
+        $severity //= 'medium';
+        
         foreach my $recipient ($self->recipients_list) {
             given ($severity) {
                 when ('low') {

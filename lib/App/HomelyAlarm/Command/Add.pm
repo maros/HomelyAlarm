@@ -9,6 +9,7 @@ package App::HomelyAlarm::Command::Add {
     option '+email' => ();
     option '+only_vacation' => ( default => 0 );
     option '+only_call' => ( default => 0 );
+    option '+severity' => ();
     
     sub run {
         my ($self) = @_;
