@@ -219,17 +219,17 @@ package App::HomelyAlarm::Command::Run {
             return _reply_error(404,"Call not found",$req)
                 unless $transaction;
             
-            _log("Transaction status ".$transaction->callee.": ".$req->param('CallStatus'));
+            _log("Transaction status ".$transaction->recipient->telephone.": ".$req->param('CallStatus'));
             if ($req->param('CallStatus') ne 'completed') {
                 # send fallback SMS
-                $self->run_sms($transaction->callee,$transaction->message,$transaction->severity);
+                $self->run_sms($transaction->recipient,$transaction->message,$transaction->severity);
             }
         } elsif ($sid = $req->param('SmsSid')) {
             my $transaction = App::HomelyAlarm::TwilioTransaction->remove_sid($sid);
             return _reply_error(404,"SMS not found",$req)
                 unless $transaction;
             
-            _log("SMS status ".$transaction->callee.": ".$req->param('SmsStatus'));
+            _log("SMS status ".$transaction->recipient->telephone.": ".$req->param('SmsStatus'));
         } else {
             _reply_error(404,"Missing parameters",$req)
         }
@@ -341,7 +341,7 @@ TWIML
                 my ($data,$headers) = @_;
                 App::HomelyAlarm::TwilioTransaction->new(
                     message     => $message, 
-                    callee      => $data->{to_formatted},
+                    callee      => $recipient,
                     sid         => $data->{sid},
                     severity    => $severity,
                 );
@@ -367,7 +367,7 @@ TWIML
                 my ($data,$headers) = @_;
                 App::HomelyAlarm::TwilioTransaction->new(
                     message => $message, 
-                    callee  => $data->{to_formatted},
+                    callee  => $recipient,
                     sid     => $data->{sid},
                     severity=> $severity,
                 );
@@ -385,13 +385,13 @@ TWIML
         foreach my $recipient ($self->recipients_list) {
             given ($severity) {
                 when ('low') {
-                    $self->run_email($message,$severity,$recipient);
+                    $self->run_email($recipient,$message,$severity);
                 }
                 when ('medium') {
-                    $self->run_sms($message,$severity,$recipient);
+                    $self->run_sms($recipient,$message,$severity);
                 }
                 when ('high') {
-                    $self->run_call($message,$severity,$recipient);
+                    $self->run_call($recipient,$message,$severity);
                 }
             }
         }
