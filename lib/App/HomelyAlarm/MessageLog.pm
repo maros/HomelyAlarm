@@ -27,6 +27,11 @@ package App::HomelyAlarm::MessageLog {
         required    => 1,
     );
     
+    sub stringify {
+        my ($self) = @_;
+        return $self->timestamp;
+    }
+    
     __PACKAGE__->meta->make_immutable;
 }
 

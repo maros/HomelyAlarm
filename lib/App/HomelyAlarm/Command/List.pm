@@ -22,7 +22,13 @@ package App::HomelyAlarm::Command::List {
                 unless $self->compare_all($recipient);
             $found++;
             say $recipient->stringify;
-            say 
+            my $last_message = $recipient->last_message;
+            if (defined $last_message) {
+                say $last_message->stringify;
+            } else {
+                say "Not contacted before";
+            }
+            
             say "-" x $MooseX::App::Utils::SCREEN_WIDTH;
         }
         say "Found $found out of $total recipients";
