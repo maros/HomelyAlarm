@@ -313,6 +313,12 @@ TWIML
     sub run_email {
         my ($self,$recipient,$message,$severity) = @_;
         
+        unless ($recipient->has_email) {
+            $self->run_sms($recipient,$message,$severity)
+                if $recipient->has_telephone;
+            return;
+        }
+        
         Email::Stuffer
             ->from($self->sender_email)
             ->to($recipient->email)
@@ -328,6 +334,12 @@ TWIML
     
     sub run_sms {
         my ($self,$recipient,$message,$severity) = @_;
+        
+        unless ($recipient->has_telephone) {
+            $self->run_email($recipient,$message,$severity)
+                if $recipient->has_email;
+            return;
+        }
         
         $self->run_request(
             'POST',
@@ -351,6 +363,12 @@ TWIML
     
     sub run_call {
         my ($self,$recipient,$message,$severity) = @_;
+        
+        unless ($recipient->has_telephone) {
+            $self->run_email($recipient,$message,$severity)
+                if $recipient->has_email;
+            return;
+        }
         
         $self->run_request(
             'POST',
