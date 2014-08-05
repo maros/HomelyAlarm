@@ -41,7 +41,12 @@ my $ha = App::HomelyAlarm::Test->new(
     twilio_authtoken    => 'AUTHTOKEN',
     secret              => 'SECRET',
     caller_number       => '123456789',
-    recipients          => ['123456789'],
+    recipients          => [
+        App::HomelyAlarm::Recipient->new(
+            email       => 'test@k-1.com',
+            telephone   => '1234567890',
+        )
+    ],
     sender_email        => 'homely_alarm@cpan.org',
 );
 
