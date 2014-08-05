@@ -24,9 +24,9 @@ package App::HomelyAlarm::Command::List {
             say $recipient->stringify;
             my $last_message = $recipient->last_message;
             if (defined $last_message) {
-                say $last_message->stringify;
+                say MooseX::App::Utils::format_list([$last_message->stringify]);
             } else {
-                say "Not contacted before";
+                say MooseX::App::Utils::format_list(["Not contacted before"]);
             }
             
             say "-" x $MooseX::App::Utils::SCREEN_WIDTH;
