@@ -2,7 +2,7 @@
 
 # t/basic.t - test basic usage
 
-use Test::Most tests => 19+1;
+use Test::Most tests => 21+1;
 use Test::NoWarnings;
 
 use Plack::Test;
@@ -36,7 +36,6 @@ use_ok( 'App::HomelyAlarm::Command::Run' );
 }
 
 my $ha = App::HomelyAlarm::Test->new(
-    
     twilio_sid          => 'SID',
     twilio_authtoken    => 'AUTHTOKEN',
     secret              => 'SECRET',
@@ -85,6 +84,7 @@ my $test = Plack::Test->create($ha->app);
 
 # Test alarm reset
 {
+    ok(!$ha->has_timer,"Has no timer");
     my $res1 = alarm_request('intrusion','Test alarm was detected');
     is($res1->code,200,'Status ok');
     ok($ha->has_timer,"Has timer");
@@ -98,6 +98,7 @@ my $test = Plack::Test->create($ha->app);
     my $res = alarm_request('run','Test alarm run');
     is($res->code,200,'Status ok');
     is($ha->last_request->{From},$ha->caller_number);
+    is($ha->last_request->{To},$ha->recipients->[0]->telephone);
     $ha->reset_last_request;
 }
 
