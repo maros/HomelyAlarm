@@ -4,6 +4,7 @@ package App::HomelyAlarm::Command::Run {
     use App::HomelyAlarm;
     use MooseX::App::Command;
     extends qw(App::HomelyAlarm);
+    with qw(App::HomelyAlarm::Role::Server);
     
     use AnyEvent::HTTP;
     use Twiggy::Server;
@@ -18,20 +19,6 @@ package App::HomelyAlarm::Command::Run {
     
     use  App::HomelyAlarm::TwilioTransaction;
     
-    option 'port' => (
-        is              => 'rw',
-        isa             => 'Int',
-        documentation   => 'Listening port',
-        default         => 1222,
-    );
-    
-    option 'host' => (
-        is              => 'rw',
-        isa             => 'Str',
-        documentation   => 'Bind host',
-        default         => '',
-    );
-    
     option 'twilio_sid' => (
         is              => 'rw',
         isa             => 'Str',
@@ -43,13 +30,6 @@ package App::HomelyAlarm::Command::Run {
         is              => 'rw',
         isa             => 'Str',
         documentation   => 'Twilio Authentication Token',
-        required        => 1,
-    );
-    
-    option 'secret' => (
-        is              => 'rw',
-        isa             => 'Str',
-        documentation   => 'Alarm server secret',
         required        => 1,
     );
     
@@ -133,7 +113,7 @@ package App::HomelyAlarm::Command::Run {
             my ($env)   = @_;
 
             _log("HomelyAlarm needs a server that supports psgi.streaming and psgi.nonblocking")
-                unless $env->{'psgi.streaming'} && $env->{'psgi.nonblocking'};
+                unless ($env->{'psgi.streaming'} && $env->{'psgi.nonblocking'}) || $ENV{HARNESS_ACTIVE};
             
             my $req     = Plack::Request->new($env);
             my @paths   = grep { $_ } split('/',$req->path_info);
