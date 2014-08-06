@@ -1,0 +1,73 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use 5.014;
+
+use FindBin qw();
+use lib "$FindBin::Bin/../lib";
+
+use App::HomelyAlarm;
+use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
+use LWP::UserAgent;
+
+package App::HomelyAlarm::RemoteTest {
+    use MooseX::App::Simple;
+    with qw(App::HomelyAlarm::Role::Server);
+    
+    has 'ua' => (
+        is              => 'rw',
+        default         => sub {
+            my $ua = LWP::UserAgent->new;
+            $ua->timeout(10);
+            return $ua;
+        }
+    );
+    
+    sub call_request {
+        my ($self,$path,$method,$params) = @_;
+        $method ||= 'POST';
+        $params ||= {};
+        $params->{AccountSid} = $alarm->twilio_sid;
+        my $uri = $self->_build_uri('call/'.$path,$params);
+        my $request = HTTP::Request->new($method => $uri);
+        $request->header( 'X-Twilio-Signature' => hmac_sha1_hex($uri,$alarm->twilio_authtoken) );
+        return $ua->request($request);
+    }
+    
+    sub alarm_request {
+        my ($self,$path,$message,$time,$severity) = @_;
+        $message ||= 'empty';
+        my $params = {
+            time    => time(),
+            message => $message,
+        };
+        $params->{severity} = $severity
+            if defined $severity;
+        my $uri = $self->_build_uri('call/'.$path,$params);
+        my $request = HTTP::Request->new('POST',$url);
+        my $digest = hmac_sha1_hex($request->uri,$alarm->secret);
+        $request->header('X-HomelyAlarm-Signature' => $digest);
+        return $ua->request($request);
+    }
+    
+    sub run {
+        my ($self) = @_;
+        
+        my $response = $self->alarm_request('run','Rabbit is great!','low');
+        warn $response->as_string;
+    }
+    
+    sub _build_uri {
+        my ($self,$path,$params) = @_;
+        # TODO https
+        my $url = 'http://'.$self->host.':'.$self->port.'/'.$path.'?';
+        
+        # TODO uri escape
+        $url .= join('&',map { $_.'='.$params->{$_} } sort keys %{$params});
+        
+        return $url;
+    }
+}
+
+App::HomelyAlarm::RemoteTest->new_with_options->run();
