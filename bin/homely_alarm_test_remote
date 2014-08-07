@@ -10,6 +10,7 @@ use lib "$FindBin::Bin/../lib";
 use App::HomelyAlarm;
 use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
 use LWP::UserAgent;
+use URI::Escape qw(uri_escape);
 
 package App::HomelyAlarm::RemoteTest {
     use MooseX::App::Simple;
@@ -64,7 +65,7 @@ package App::HomelyAlarm::RemoteTest {
         my $url = 'http://'.$self->host.':'.$self->port.'/'.$path.'?';
         
         # TODO uri escape
-        $url .= join('&',map { $_.'='.$params->{$_} } sort keys %{$params});
+        $url .= join('&',map { $_.'='.uri_escape($params->{$_}) } sort keys %{$params});
         
         return $url;
     }
