@@ -97,8 +97,8 @@ my $test = Plack::Test->create($ha->app);
 {
     my $res = alarm_request('run','Test alarm run');
     is($res->code,200,'Status ok');
-    is($ha->last_request->{From},$ha->caller_number);
-    is($ha->last_request->{To},$ha->recipients->[0]->telephone);
+    is($ha->last_request->{From},$ha->caller_number,'Has correct caller number');
+    is($ha->last_request->{To},$ha->recipients->[0]->telephone,'Has correct callee number');
     $ha->reset_last_request;
 }
 
@@ -125,7 +125,7 @@ my $test = Plack::Test->create($ha->app);
     );
     my $wait = AnyEvent->idle (cb => sub { 
         if ($ha->last_request) {
-            ok("Got twilio callback");
+            pass("Got twilio callback");
             $cv->send;
         }
     });
