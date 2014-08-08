@@ -21,6 +21,11 @@ package App::HomelyAlarm::Command::Add {
             return;
         }
         
+        if ($self->only_call && ! $self->has_telephone) {
+            say "Cannot set --only_call flag without telephone number";
+            return;
+        }
+        
         foreach my $recipient ($self->recipients_list) {
             if ($self->compare_email($recipient) == 1) {
                 say "Duplicate e-mail address: ".$self->email;
