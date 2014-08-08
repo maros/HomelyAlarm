@@ -5,6 +5,9 @@
 use Test::Most tests => 11+1;
 use Test::NoWarnings;
 
+use strict;
+use warnings;
+
 use_ok( 'App::HomelyAlarm' ); 
 use_ok( 'App::HomelyAlarm::MessageLog' ); 
 use_ok( 'App::HomelyAlarm::Recipient' ); 

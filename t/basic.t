@@ -5,6 +5,9 @@
 use Test::Most tests => 21+1;
 use Test::NoWarnings;
 
+use strict;
+use warnings;
+
 use Plack::Test;
 use HTTP::Request::Common;
 use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
