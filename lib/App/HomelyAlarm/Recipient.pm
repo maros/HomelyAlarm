@@ -12,11 +12,12 @@ package App::HomelyAlarm::Recipient {
     );
     
     sub add_message {
-        my ($self,$message,$mode) = @_;
+        my ($self,$message,$mode,$severity) = @_;
         
         my $message_log = App::HomelyAlarm::MessageLog->new(
             message     => $message,
             mode        => $mode,
+            severity    => $severity,
         );
         
         push(@{$self->message_log},$message_log);

@@ -29,7 +29,12 @@ package App::HomelyAlarm::MessageLog {
     
     sub stringify {
         my ($self) = @_;
+        # TODO
         return $self->timestamp;
+    }
+    
+    sub ago {
+        my ($self) = @_;
     }
     
     __PACKAGE__->meta->make_immutable;

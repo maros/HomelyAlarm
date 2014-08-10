@@ -289,6 +289,8 @@ TWIML
             return;
         }
         
+        $recipient->add_message($message,'email',$severity);
+        
         Email::Stuffer
             ->from($self->sender_email)
             ->to($recipient->email)
@@ -310,6 +312,8 @@ TWIML
                 if $recipient->has_email;
             return;
         }
+        
+        $recipient->add_message($message,'sms',$severity);
         
         $self->run_request(
             'POST',
@@ -339,6 +343,8 @@ TWIML
                 if $recipient->has_email;
             return;
         }
+        
+        $recipient->add_message($message,'call',$severity);
         
         $self->run_request(
             'POST',
@@ -376,6 +382,12 @@ TWIML
         foreach my $recipient ($self->recipients_list) {
             next
                 if $recipient->severity_level < $severity_level;
+            
+            my $last_message = $recipient->last_message();
+            next
+                if $last_message->message eq $message
+                && $last_message->ago < 60*10;
+            
             given ($severity) {
                 when ('low') {
                     $self->run_email($recipient,$message,$severity);
@@ -388,6 +400,8 @@ TWIML
                 }
             }
         }
+        
+        $self->write_recipients();
     }
     
     sub authenticate_alarm {
