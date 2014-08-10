@@ -58,15 +58,11 @@ package App::HomelyAlarm::Command::Run {
         predicate       => 'has_self_url',
     );
     
-    our $INSTANCE;
-    
     sub run {
         my ($self) = @_;
  
         # Initalize condvar
         my $cv = AnyEvent->condvar;
-        
-        $INSTANCE = $self;
         
         # Signal handler
         my $term_signal = AnyEvent->signal(
@@ -97,13 +93,7 @@ package App::HomelyAlarm::Command::Run {
         
         $cv->recv;
         
-        $INSTANCE = undef;
-        
         _log('End loop');
-    }
-    
-    sub app_instance {
-        return $INSTANCE;
     }
     
     sub app {
