@@ -329,9 +329,9 @@ TWIML
                 my ($data,$headers) = @_;
                 App::HomelyAlarm::TwilioTransaction->new(
                     message     => $message, 
-                    callee      => $recipient,
                     sid         => $data->{sid},
-                    severity    => $severity,
+                    severity    => $severity,#
+                    recipient   => $recipient,
                 );
             },
         )
@@ -362,10 +362,10 @@ TWIML
             sub {
                 my ($data,$headers) = @_;
                 App::HomelyAlarm::TwilioTransaction->new(
-                    message => $message, 
-                    callee  => $recipient,
-                    sid     => $data->{sid},
-                    severity=> $severity,
+                    message     => $message, 
+                    recipient   => $recipient,
+                    sid         => $data->{sid},
+                    severity    => $severity,
                 );
             },
         );

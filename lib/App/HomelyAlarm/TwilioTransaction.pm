@@ -32,6 +32,7 @@ package App::HomelyAlarm::TwilioTransaction {
         is      => 'ro',
         isa     => 'App::HomelyAlarm::Recipient',
         required=> 1,
+        weak_ref=> 1,
     );
     
     sub BUILD {
