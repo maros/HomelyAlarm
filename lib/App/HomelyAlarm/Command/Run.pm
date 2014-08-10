@@ -385,7 +385,8 @@ TWIML
             
             my $last_message = $recipient->last_message();
             next
-                if $last_message->message eq $message
+                if defined $last_message
+                && $last_message->message eq $message
                 && $last_message->ago < 60*10;
             
             given ($severity) {
