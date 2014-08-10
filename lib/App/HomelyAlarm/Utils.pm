@@ -8,11 +8,13 @@ package App::HomelyAlarm::Utils {
     
     subtype 'App::HomelyAlarm::Type::Email',
         as 'Str',
-        where { m/^[[:alnum:].-]+\@[[:alnum:].-]+$/ };
+        where { m/^[[:alnum:].-]+\@[[:alnum:].-]+$/ },
+        message { 'Not a valid e-mail address' };
     
     subtype 'App::HomelyAlarm::Type::Telephone',
         as 'Str',
-        where { m/^(00|\+)\d+$/ };
+        where { m/^(00|\+)\d+$/ },
+        message { 'Not a valid telephone number (needs to begin with intl. prefix)' };
     
     subtype 'App::HomelyAlarm::Type::Severity',
         as enum(\@SEVERITY);
