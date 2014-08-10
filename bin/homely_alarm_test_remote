@@ -8,13 +8,14 @@ use FindBin qw();
 use lib "$FindBin::Bin/../lib";
 
 use App::HomelyAlarm;
-use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
-use LWP::UserAgent;
-use URI::Escape qw(uri_escape);
 
 package App::HomelyAlarm::RemoteTest {
-    use MooseX::App::Simple;
+    use MooseX::App::Simple qw(Config);
     with qw(App::HomelyAlarm::Role::Server);
+    
+    use URI::Escape qw(uri_escape);
+    use Digest::HMAC_SHA1 qw(hmac_sha1_hex);
+    use LWP::UserAgent;
     
     has 'ua' => (
         is              => 'rw',
@@ -29,11 +30,11 @@ package App::HomelyAlarm::RemoteTest {
         my ($self,$path,$method,$params) = @_;
         $method ||= 'POST';
         $params ||= {};
-        $params->{AccountSid} = $alarm->twilio_sid;
+        $params->{AccountSid} = $self->twilio_sid;
         my $uri = $self->_build_uri('call/'.$path,$params);
         my $request = HTTP::Request->new($method => $uri);
-        $request->header( 'X-Twilio-Signature' => hmac_sha1_hex($uri,$alarm->twilio_authtoken) );
-        return $ua->request($request);
+        $request->header( 'X-Twilio-Signature' => hmac_sha1_hex($uri,$self->twilio_authtoken) );
+        return $self->ua->request($request);
     }
     
     sub alarm_request {
@@ -46,10 +47,10 @@ package App::HomelyAlarm::RemoteTest {
         $params->{severity} = $severity
             if defined $severity;
         my $uri = $self->_build_uri('call/'.$path,$params);
-        my $request = HTTP::Request->new('POST',$url);
-        my $digest = hmac_sha1_hex($request->uri,$alarm->secret);
+        my $request = HTTP::Request->new('POST',$uri);
+        my $digest = hmac_sha1_hex($request->uri,$self->secret);
         $request->header('X-HomelyAlarm-Signature' => $digest);
-        return $ua->request($request);
+        return $self->ua->request($request);
     }
     
     sub run {
