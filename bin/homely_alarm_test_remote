@@ -46,7 +46,7 @@ package App::HomelyAlarm::RemoteTest {
         };
         $params->{severity} = $severity
             if defined $severity;
-        my $uri = $self->_build_uri('call/'.$path,$params);
+        my $uri = $self->_build_uri('alarm/'.$path,$params);
         my $request = HTTP::Request->new('POST',$uri);
         my $digest = hmac_sha1_hex($request->uri,$self->secret);
         $request->header('X-HomelyAlarm-Signature' => $digest);
@@ -56,14 +56,18 @@ package App::HomelyAlarm::RemoteTest {
     sub run {
         my ($self) = @_;
         
-        my $response = $self->alarm_request('run','Rabbit is great!','low');
+        my $response = $self->alarm_request('run','Rabbit is great','low');
         warn $response->as_string;
     }
     
     sub _build_uri {
         my ($self,$path,$params) = @_;
         # TODO https
-        my $url = 'http://'.$self->host.':'.$self->port.'/'.$path.'?';
+        my $url = 'http://'.$self->host;
+        $url .= ':'.$self->port
+            if $self->port != 80;
+            
+        $url .= '/'.$path.'?';
         
         # TODO uri escape
         $url .= join('&',map { $_.'='.uri_escape($params->{$_}) } sort keys %{$params});
