@@ -5,14 +5,14 @@ package App::HomelyAlarm::Role::Recipient {
     
     has 'telephone' => (
         is              => 'rw',
-        #isa             => 'App::HomelyAlarm::Type::Telephone',
+        isa             => 'App::HomelyAlarm::Type::Telephone',
         documentation   => 'Telephone number',
         predicate       => 'has_telephone',
     );
     
     has 'email' => (
         is              => 'rw',
-        #isa             => 'App::HomelyAlarm::Type::Email',
+        isa             => 'App::HomelyAlarm::Type::Email',
         documentation   => 'E-mail address',
         predicate       => 'has_email',
     );

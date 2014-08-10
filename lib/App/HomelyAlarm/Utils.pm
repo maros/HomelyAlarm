@@ -6,6 +6,14 @@ package App::HomelyAlarm::Utils {
     
     use Moose::Util::TypeConstraints;
     
+    subtype 'App::HomelyAlarm::Type::Email',
+        as 'Str',
+        where { m/^[[:alnum:].-]+\@[[:alnum:].-]+$/ };
+    
+    subtype 'App::HomelyAlarm::Type::Telephone',
+        as 'Str',
+        where { m/^(00|\+)\d+$/ };
+    
     subtype 'App::HomelyAlarm::Type::Severity',
         as enum(\@SEVERITY);
     

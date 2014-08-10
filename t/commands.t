@@ -30,14 +30,14 @@ unlink($recipients_database);
     run_command(
         'add', 
         email => 'test@k-1.com',
-        telephone => '1234',
+        telephone => '+431234',
     );
     $recipients = recipients();
     is(scalar(@{$recipients}),1,'Still has one recipient');
     
     run_command(
         'add', 
-        telephone => '1234',
+        telephone => '+431234',
         only_vacation => 1,
         severity => 'medium',
         only_call => 1,
@@ -45,7 +45,7 @@ unlink($recipients_database);
     
     $recipients = recipients();
     is(scalar(@{$recipients}),2,'Now has two recipients');
-    is($recipients->[1]->telephone,'1234','Telephone ok');
+    is($recipients->[1]->telephone,'+431234','Telephone ok');
 }
 
 {
@@ -53,7 +53,7 @@ unlink($recipients_database);
     
     run_command(
         'remove', 
-        telephone => '1234',
+        telephone => '+431234',
     );
     
     $recipients = recipients();

@@ -46,7 +46,7 @@ my $ha = App::HomelyAlarm::Test->new(
     recipients          => [
         App::HomelyAlarm::Recipient->new(
             email       => 'test@k-1.com',
-            telephone   => '1234567890',
+            telephone   => '+431234567890',
         )
     ],
     sender_email        => 'homely_alarm@cpan.org',
