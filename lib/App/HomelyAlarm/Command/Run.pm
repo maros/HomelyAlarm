@@ -6,6 +6,8 @@ package App::HomelyAlarm::Command::Run {
     extends qw(App::HomelyAlarm);
     with qw(App::HomelyAlarm::Role::Server);
     
+    no if $] >= 5.018000, warnings => qw(experimental::smartmatch);
+    
     use AnyEvent::HTTP;
     use Twiggy::Server;
     use AnyEvent;
