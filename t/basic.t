@@ -2,7 +2,7 @@
 
 # t/basic.t - test basic usage
 
-use Test::Most tests => 21+1;
+use Test::Most tests => 26+1;
 use Test::NoWarnings;
 
 use strict;
@@ -133,6 +133,16 @@ my $test = Plack::Test->create($ha->app);
         }
     });
     $cv->recv;
+}
+
+# Test message log
+{
+    is(scalar @{$ha->recipients},1,'Has one recipient');
+    my $recipient = $ha->recipients->[0];
+    is(scalar @{$recipient->message_log},2,'Has two messages');
+    is($recipient->message_log->[0]->message,'Test alarm run','First message ok');
+    is($recipient->message_log->[0]->severity,'high','First severity ok');
+    is($recipient->message_log->[1]->message,'Test alarm intrusion','Second message ok');
 }
 
 sub alarm_request {
