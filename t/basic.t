@@ -25,7 +25,7 @@ use_ok( 'App::HomelyAlarm::Command::Run' );
         clearer => 'reset_last_request',
     );
     
-    sub run_request {
+    sub run_twilio {
         my $self = shift;
         my $method = shift;
         my $action = shift;

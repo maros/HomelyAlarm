@@ -229,7 +229,7 @@ TWIML
         ];
     }
     
-    sub run_request {
+    sub run_twilio {
         my $self = shift;
         my $method = shift;
         my $action = shift;
@@ -270,6 +270,7 @@ TWIML
             %params, 
             sub {
                 my ($data,$headers) = @_;
+                
                 $guard = undef;
                 my $api_response = JSON::XS::decode_json($data);
                 if ($headers->{Status} =~ /^2/) {
@@ -317,7 +318,7 @@ TWIML
         
         $recipient->add_message($message,'sms',$severity);
         
-        $self->run_request(
+        $self->run_twilio(
             'POST',
             'Messages',
             From            => $self->caller_number,
@@ -348,7 +349,7 @@ TWIML
         
         $recipient->add_message($message,'call',$severity);
         
-        $self->run_request(
+        $self->run_twilio(
             'POST',
             'Calls',
             From            => $self->caller_number,
