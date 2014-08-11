@@ -127,9 +127,10 @@ package App::HomelyAlarm::Role::Recipient {
     }
     
     sub stringify {
-        my ($self) = @_;
+        my ($self,$noflags) = @_;
+        $noflags //= 0;
         
-        my (@contact,@flags);
+        my @contact;
         if ($self->has_email) {
             push(@contact,$self->email);
         }
@@ -138,26 +139,30 @@ package App::HomelyAlarm::Role::Recipient {
             push(@contact,$self->telephone);
         }
         
-        if ($self->only_call) {
-            push(@flags,'call only/no sms');
-        }
-        if ($self->only_vacation) {
-            push(@flags,'alert only during vacations');
-        }
-        if ($self->has_severity && $self->severity ne 'low') {
-            push(@flags,'only '.$self->severity.' severity');
+        my $return = join(', ',@contact);
+        unless ($noflags) {
+            my @flags;
+            if ($self->only_call) {
+                push(@flags,'call only/no sms');
+            }
+            if ($self->only_vacation) {
+                push(@flags,'alert only during vacations');
+            }
+            if ($self->has_severity && $self->severity ne 'low') {
+                push(@flags,'only '.$self->severity.' severity');
+            }
+            
+            if (scalar @flags) {
+                $return .= ' ('.join(', ',@flags).')';
+            }
         }
         
-        my $return = join(', ',@contact);
-        if (scalar @flags) {
-            $return .= ' ('.join(', ',@flags).')';
-        }
         return $return;
     }
     
     sub severity_level {
         my ($self) = @_;
-        return 99
+        return 0
             unless $self->has_severity;
         return App::HomelyAlarm::Utils::severity_level($self->severity);
     }
