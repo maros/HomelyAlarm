@@ -187,7 +187,7 @@ package App::HomelyAlarm::Command::Run {
         my $sid;
         
         if ($sid = $req->param('CallSid')) {
-            my $transaction = App::HomelyAlarm::TwilioTransaction->remove_sid($sid);
+            my $transaction = App::HomelyAlarm::TwilioTransaction->remove_transactions($sid);
             return _reply_error(404,"Call not found",$req)
                 unless $transaction;
             
@@ -197,7 +197,7 @@ package App::HomelyAlarm::Command::Run {
                 $self->run_sms($transaction->recipient,$transaction->message,$transaction->severity);
             }
         } elsif ($sid = $req->param('SmsSid')) {
-            my $transaction = App::HomelyAlarm::TwilioTransaction->remove_sid($sid);
+            my $transaction = App::HomelyAlarm::TwilioTransaction->remove_transactions($sid);
             return _reply_error(404,"SMS not found",$req)
                 unless $transaction;
             
