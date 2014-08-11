@@ -38,7 +38,7 @@ package App::HomelyAlarm::RemoteTest {
     }
     
     sub alarm_request {
-        my ($self,$path,$message,$time,$severity) = @_;
+        my ($self,$path,$message,$severity) = @_;
         $message ||= 'empty';
         my $params = {
             time    => time(),
@@ -56,7 +56,7 @@ package App::HomelyAlarm::RemoteTest {
     sub run {
         my ($self) = @_;
         
-        my $response = $self->alarm_request('run','Rabbit is great','low');
+        my $response = $self->alarm_request('run','Rabbit is extremely lovely','medium');
         warn $response->as_string;
     }
     
