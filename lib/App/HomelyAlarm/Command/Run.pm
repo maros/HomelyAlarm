@@ -375,7 +375,7 @@ TWIML
     sub run_notify {
         my ($self,$message,$severity) = @_;
         $self->clear_timer();
-        _log("Running alarm");
+        _log("Running $severity priority alarm: $message");
         
         $severity //= 'medium';
         
@@ -383,14 +383,21 @@ TWIML
         
         RECIPIENT:
         foreach my $recipient ($self->recipients_list) {
-            next
-                if $recipient->severity_level < $severity_level;
+            if ($recipient->severity_level > $severity_level) {
+                _log("Skip ".$recipient->stringify(1).": Severity ".$recipient->severity);
+                next;
+            };
             
             my $last_message = $recipient->last_message();
-            next
-                if defined $last_message
+            
+            if (defined $last_message
                 && $last_message->message eq $message
-                && $last_message->ago < 60*10;
+                && $last_message->ago < 60*10) {
+                _log("Skip ".$recipient->stringify(1).": Duplicate message");
+                next;
+            }
+            
+            _log("Notifying ".$recipient->stringify(1));
             
             given ($severity) {
                 when ('low') {
