@@ -38,74 +38,74 @@ package App::HomelyAlarm::Role::Recipient {
         predicate       => 'has_severity',
     );
     
-    sub compare_all {
-        my ($self,$other) = @_;
-        
-        if ($self->has_only_vacation) {
-            return 0
-                unless $self->only_vacation == $other->only_vacation;
-        }
-        
-        if ($self->has_severity) {
-            return 0
-                unless $self->severity eq $other->severity;
-        }
-        
-        if ($self->has_only_call) {
-            return 0
-                unless $self->only_call == $other->only_call;
-        }
-        
-        if ($self->has_email) {
-            return 0
-                unless $self->compare_email($other) == 1;
-        }
-        
-        if ($self->has_telephone) {
-            return 0
-                unless $self->compare_telephone($other) == 1;
-        }
-        
-        return 1;
-    }
-    
-    
-    sub compare_email {
-        my ($self,$other) = @_;
-        
-        return -1
-            unless $self->has_email
-            && $other->has_email;
-        
-        return 1
-            if $self->email eq $other->email;
-        
-        return 0;
-    }
-    
-    sub compare_telephone {
-        my ($self,$other) = @_;
-        
-        return -1
-            unless $self->has_telephone
-            && $other->has_telephone;
-        
-        return 1
-            if $self->telephone eq $other->telephone;
-        
-        return 0;
-    }
-    
-    sub compare_any {
-        my ($self,$other) = @_;
-        
-        return 1
-            if $self->compare_email($other) == 1;
-        return 1
-            if $self->compare_telephone($other) == 1;
-        
-        return 0;
-    }
+#    sub compare_all {
+#        my ($self,$other) = @_;
+#        
+#        if ($self->has_only_vacation) {
+#            return 0
+#                unless $self->only_vacation == $other->only_vacation;
+#        }
+#        
+#        if ($self->has_severity) {
+#            return 0
+#                unless $self->severity eq $other->severity;
+#        }
+#        
+#        if ($self->has_only_call) {
+#            return 0
+#                unless $self->only_call == $other->only_call;
+#        }
+#        
+#        if ($self->has_email) {
+#            return 0
+#                unless $self->compare_email($other) == 1;
+#        }
+#        
+#        if ($self->has_telephone) {
+#            return 0
+#                unless $self->compare_telephone($other) == 1;
+#        }
+#        
+#        return 1;
+#    }
+#    
+#    
+#    sub compare_email {
+#        my ($self,$other) = @_;
+#        
+#        return -1
+#            unless $self->has_email
+#            && $other->has_email;
+#        
+#        return 1
+#            if $self->email eq $other->email;
+#        
+#        return 0;
+#    }
+#    
+#    sub compare_telephone {
+#        my ($self,$other) = @_;
+#        
+#        return -1
+#            unless $self->has_telephone
+#            && $other->has_telephone;
+#        
+#        return 1
+#            if $self->telephone eq $other->telephone;
+#        
+#        return 0;
+#    }
+#    
+#    sub compare_any {
+#        my ($self,$other) = @_;
+#        
+#        return 1
+#            if $self->compare_email($other) == 1;
+#        return 1
+#            if $self->compare_telephone($other) == 1;
+#        
+#        return 0;
+#    }
     
     sub format {
         my ($self) = @_;

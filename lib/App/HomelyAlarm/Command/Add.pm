@@ -26,21 +26,21 @@ package App::HomelyAlarm::Command::Add {
             return;
         }
         
-        foreach my $recipient ($self->recipients_list) {
-            if ($self->compare_email($recipient) == 1) {
-                say "Duplicate e-mail address: ".$self->email;
-                return;
-            }
-            if ($self->compare_telephone($recipient) == 1) {
-                say "Duplicate telephone number: ".$self->telephone;
-                return;
-            }
+        if ($self->has_email && 
+            $self->recipients_count({ email => $self->email })) {
+            say "Duplicate e-mail address: ".$self->email;
+            return;
+        }
+        
+        if ($self->has_telephone && 
+            $self->recipients_count({ telephone => $self->telephone })) {
+            say "Duplicate telephone number: ".$self->telephone;
+            return;
         }
         
         my $new_recipient = App::HomelyAlarm::Recipient->new(%{$self});
         say "Adding recipient ".$new_recipient->stringify;
-        $self->add_recipient($new_recipient);
-        $self->write_recipients;
+        $new_recipient->store();
     }
     
     __PACKAGE__->meta->make_immutable;

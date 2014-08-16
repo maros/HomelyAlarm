@@ -6,32 +6,37 @@ package App::HomelyAlarm::Recipient {
     
     use App::HomelyAlarm::MessageLog;
     
-    has 'message_log' => (
-        default     => sub { [] },
-        is          => 'rw',
+    has 'database_id' => (
+        is              => 'rw',
+        isa             => 'Int',
+        predicate       => 'is_in_database',
     );
+    
+    sub store {
+        my ($self) = @_;
+        App::HomelyAlarm::Storage->instance->store_recipient($self);
+    }
+    
+    sub remove {
+        my ($self) = @_;
+        App::HomelyAlarm::Storage->instance->remove_recipient($self);
+    }
     
     sub add_message {
         my ($self,$message,$mode,$severity) = @_;
         
-        my $message_log = App::HomelyAlarm::MessageLog->new(
-            message     => $message,
-            mode        => $mode,
-            severity    => $severity,
-        );
-        
-        push(@{$self->message_log},$message_log);
+        # TODO
     }
-    
-    sub all_messages {
-        my ($self) = @_;
-        return sort { $a->timestamp <=> $b->timestamp }  @{$self->message_log};
-    }
-    
-    sub last_message {
-        my ($self) = @_;
-        return ($self->all_messages)[-1];
-    }
+#    
+#    sub all_messages {
+#        my ($self) = @_;
+#        return sort { $a->timestamp <=> $b->timestamp }  @{$self->message_log};
+#    }
+#    
+#    sub last_message {
+#        my ($self) = @_;
+#        return ($self->all_messages)[-1];
+#    }
 }
 
 1;

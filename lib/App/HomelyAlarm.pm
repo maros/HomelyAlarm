@@ -12,44 +12,30 @@ package App::HomelyAlarm {
     
     use App::HomelyAlarm::MessageLog;
     use App::HomelyAlarm::Recipient;
-    use Sereal::Encoder qw(encode_sereal);
-    use Sereal::Decoder qw(decode_sereal);
+    use App::HomelyAlarm::Storage;
     
-    option 'recipients_database' => (
+    has 'storage' => (
+        is              => 'ro',
+        isa             => 'App::HomelyAlarm::Storage',
+        lazy_build      => 1,
+        handles         => [qw(
+            recipients_list
+            recipients_count
+        )],
+    );
+    
+    option 'database' => (
         is              => 'ro',
         required        => 1,
         cmd_flag        => 'recipients',
         default         => $ENV{HOME}.'/.homely_alarm.db',
         isa             => 'Str',
-        documentation   => q[Recipients database file],
+        documentation   => q[Database file],
     );
     
-    has 'recipients' => (
-        is          => 'rw',
-        lazy_build  => 1,
-        traits      => ['Array'],
-        handles     => {
-            'add_recipient'     => 'push',
-            'recipients_list'   => 'elements',
-        }
-    );
-    
-    sub _build_recipients {
+    sub _build_storage {
         my ($self) = @_;
-        my $file = Path::Class::File->new($self->recipients_database);
-        return []
-            unless -e $file;
-        my $decoded = decode_sereal($file->slurp());
-        return []
-            unless ref($decoded) eq 'ARRAY';
-        return $decoded;
-    }
-    
-    sub write_recipients {
-        my ($self) = @_;
-        Path::Class::File
-            ->new($self->recipients_database)
-            ->spew(encode_sereal($self->recipients));
+        return App::HomelyAlarm::Storage->instance( $self->database );
     }
     
     __PACKAGE__->meta->make_immutable;

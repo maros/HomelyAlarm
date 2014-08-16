@@ -16,21 +16,16 @@ package App::HomelyAlarm::Command::Remove {
         my ($self) = @_;
         $self->format();
         
-        my @new_recipients;
-        my ($total,$found) = (0,0);
-        foreach my $recipient ($self->recipients_list) {
-            $total++;
-            if ($self->compare_all($recipient)) {
-                say "Removing recipient ".$recipient->stringify;
-                $found++;
-                next;
-            }
-            push(@new_recipients,$recipient);
+        my $total = $self->recipients_count();
+        my $found = 0;
+        
+        foreach my $recipient ($self->recipients_list()) {
+            # TODO confirm?
+            $found++;
+            say "Removing recipient ".$recipient->stringify;
+            $recipient->remove;
         }
         say "Removed $found out of $total recipients";
-        
-        $self->recipients(\@new_recipients);
-        $self->write_recipients;
     }
     
     __PACKAGE__->meta->make_immutable;

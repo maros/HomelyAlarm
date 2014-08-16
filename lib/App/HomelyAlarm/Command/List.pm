@@ -15,21 +15,20 @@ package App::HomelyAlarm::Command::List {
         my ($self) = @_;
         $self->format();
         
-        my ($total,$found) = (0,0);
-        foreach my $recipient ($self->recipients_list) {
-            $total++;
-            next
-                unless $self->compare_all($recipient);
+        my $total = $self->recipients_count();
+        my $found = 0;
+        
+        foreach my $recipient ($self->recipients_list()) {
             $found++;
             say $recipient->stringify;
-            my $last_message = $recipient->last_message;
-            if (defined $last_message) {
-                say MooseX::App::Utils::format_list([$last_message->stringify]);
-            } else {
-                say MooseX::App::Utils::format_list(["Not contacted before"]);
-            }
-            
-            say "-" x $MooseX::App::Utils::SCREEN_WIDTH;
+#            my $last_message = $recipient->last_message;
+#            if (defined $last_message) {
+#                say MooseX::App::Utils::format_list([$last_message->stringify]);
+#            } else {
+#                say MooseX::App::Utils::format_list(["Not contacted before"]);
+#            }
+#            
+#            say "-" x $MooseX::App::Utils::SCREEN_WIDTH;
         }
         say "Found $found out of $total recipients";
     }
