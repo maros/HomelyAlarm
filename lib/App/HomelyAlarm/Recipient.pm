@@ -8,7 +8,7 @@ package App::HomelyAlarm::Recipient {
     use App::HomelyAlarm::MessageLog;
     
     sub database_fields {
-        return qw(telephone email only_call only_vacation severity) # TODO introspection
+        return qw(telephone email only_call only_vacation severity_level) # TODO introspection
     }
     
     sub database_table {
@@ -18,7 +18,7 @@ package App::HomelyAlarm::Recipient {
     around 'remove' => sub {
         my ($orig,$self,$storage) = @_;
         
-        $storage->dbh->do('DELETE FROM message WHERE recipient = ?',{},$self->database_id);
+        $storage->dbh_do('DELETE FROM message WHERE recipient = ?',$self->database_id);
         
         return $self->$orig($storage);
     };
@@ -26,11 +26,10 @@ package App::HomelyAlarm::Recipient {
     sub add_message {
         my ($self,$storage,%params) = @_;
         
-        $storage->dbh->do('INSERT INTO message 
+        $storage->dbh_do('INSERT INTO message 
             (recipient,mode,message,severity,reference)
             VALUES
             (?,?,?,?)',
-            {},
             $self->database_id,
             $params{mode},
             $params{message},
@@ -41,7 +40,8 @@ package App::HomelyAlarm::Recipient {
     
     sub last_message {
         my ($self,$storage) = @_;
-        # TODO
+        
+        return App::HomelyAlarm::MessageLog->last_message_recipient($storage,$self->database_id);
     }
 }
 

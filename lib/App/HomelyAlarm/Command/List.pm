@@ -22,7 +22,7 @@ package App::HomelyAlarm::Command::List {
         foreach my $recipient (App::HomelyAlarm::Recipient->list($self->storage,\%filter)) {
             $found++;
             say $recipient->stringify;
-#            my $last_message = $recipient->last_message;
+#            my $last_message = $recipient->last_message($self->storage);
 #            if (defined $last_message) {
 #                say MooseX::App::Utils::format_list([$last_message->stringify]);
 #            } else {

@@ -63,8 +63,8 @@ unlink($recipients_database);
 
 sub recipients {
     return App::HomelyAlarm
-        ->new(recipients_database => $recipients_database)
-        ->recipients;
+        ->new(database => $recipients_database)
+        ->storage;
 }
 
 sub run_command {
@@ -73,7 +73,7 @@ sub run_command {
     my $package = 'App::HomelyAlarm::Command::'.ucfirst(lc($command));
     use_ok($package); 
     return $package->new(
-        recipients_database => $recipients_database,
+        database => $recipients_database,
         %params,
     )->run;
 }

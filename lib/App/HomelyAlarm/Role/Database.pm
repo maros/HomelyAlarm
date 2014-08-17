@@ -39,13 +39,13 @@ package App::HomelyAlarm::Role::Database {
                 ')';
         }
         
-        $storage->dbh->do($sql,{},@data);
+        $storage->dbh_do($sql,@data);
     }
     
     sub remove {
         my ($self,$storage) = @_;
         my $table = $self->database_table();
-        $storage->dbh->do('DELETE FROM '.$table.' WHERE id = ?',{},$self->database_id);
+        $storage->dbh_do('DELETE FROM '.$table.' WHERE id = ?',$self->database_id);
     }
     
     sub list {
@@ -56,7 +56,8 @@ package App::HomelyAlarm::Role::Database {
             FROM ".$class->database_table;
         
         my ($sql_filtered,@sql_data) = $class->_filter($sql,$filter);
-        my $sth = $storage->dbh->prepare($sql_filtered);
+        my $sth = $storage->dbh->prepare($sql_filtered)
+            or die($storage->dbh->errstr.':'.$sql_filtered);
         $sth->execute(@sql_data);
         
         my @result;

@@ -39,7 +39,7 @@ package App::HomelyAlarm::MessageLog {
     );
     
     sub database_fields {
-        return qw(message timestamp mode severity reference status) # TODO introspection
+        return qw(message timestamp mode severity_level reference status) # TODO introspection
     }
     
     sub database_table {
@@ -54,12 +54,12 @@ package App::HomelyAlarm::MessageLog {
     
     sub set_failed {
         my ($self,$storage) = @_;
-        $storage->dbh->do('UPDATE '.$self->database_table.' SET status = 1 WHERE id = ?',{},$self->database_id);
+        $storage->dbh_do('UPDATE '.$self->database_table.' SET status = 1 WHERE id = ?',$self->database_id);
     }
     
     sub set_success {
         my ($self,$storage) = @_;
-        $storage->dbh->do('UPDATE '.$self->database_table.' SET status = 2 WHERE id = ?',{},$self->database_id);
+        $storage->dbh_do('UPDATE '.$self->database_table.' SET status = 2 WHERE id = ?',$self->database_id);
     }
     
     sub find_message {
@@ -72,6 +72,19 @@ package App::HomelyAlarm::MessageLog {
             ' WHERE reference = ?';
         my $sth = $storage->dbh->prepare($sql);
         $sth->execute($reference);
+        return $class->_inflate($sth->fetchrow_hashref());
+    }
+    
+    sub last_message_recipient {
+        my ($class,$storage,$recipient) = @_;
+        
+        my $sql = 'SELECT '.
+            join(',',$class->database_fields).
+            ' FROM '.
+            $class->database_table.
+            ' WHERE recipient = ? ORDER BY timestamp DESC LIMIT 1';
+        my $sth = $storage->dbh->prepare($sql);
+        $sth->execute($recipient);
         return $class->_inflate($sth->fetchrow_hashref());
     }
     

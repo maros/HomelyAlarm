@@ -73,11 +73,19 @@ sub _build_dbh {
     
     $self->current_version($latest_version);
     unless ($database_ok) {
-        $dbh->do('INSERT OR REPLACE INTO meta (key,value) VALUES (?,?)',{},'database_version',$latest_version);
+        $dbh->dbh('INSERT OR REPLACE INTO meta (key,value) VALUES (?,?)','database_version',$latest_version);
     }
      
     return $dbh;
 }
+
+sub dbh_do {
+    my ($self,$sql,@variables) = @_;
+    
+    $self->dbh->do($sql,{},@variables)
+        or die($self->dbh->errstr.': '.$sql);
+}
+
 
 __PACKAGE__->meta->make_immutable;
 
