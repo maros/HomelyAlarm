@@ -15,10 +15,11 @@ package App::HomelyAlarm::Command::List {
         my ($self) = @_;
         $self->format();
         
-        my $total = $self->recipients_count();
-        my $found = 0;
+        my %filter  = $self->for_filter;
+        my $total   = App::HomelyAlarm::Recipient->count($self->storage);
+        my $found   = 0;#
         
-        foreach my $recipient ($self->recipients_list()) {
+        foreach my $recipient (App::HomelyAlarm::Recipient->list($self->storage,\%filter)) {
             $found++;
             say $recipient->stringify;
 #            my $last_message = $recipient->last_message;

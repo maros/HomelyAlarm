@@ -23,7 +23,7 @@ package App::HomelyAlarm::Command::Remove {
             # TODO confirm?
             $found++;
             say "Removing recipient ".$recipient->stringify;
-            $recipient->remove;
+            $recipient->remove($self->storage);
         }
         say "Removed $found out of $total recipients";
     }

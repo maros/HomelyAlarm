@@ -2,41 +2,47 @@ package App::HomelyAlarm::Recipient {
     use 5.014; 
 
     use Moose;
-    with qw(App::HomelyAlarm::Role::Recipient);
+    with qw(App::HomelyAlarm::Role::Recipient
+        App::HomelyAlarm::Role::Database);
     
     use App::HomelyAlarm::MessageLog;
     
-    has 'database_id' => (
-        is              => 'rw',
-        isa             => 'Int',
-        predicate       => 'is_in_database',
-    );
-    
-    sub store {
-        my ($self) = @_;
-        App::HomelyAlarm::Storage->instance->store_recipient($self);
+    sub database_fields {
+        return qw(telephone email only_call only_vacation severity) # TODO introspection
     }
     
-    sub remove {
-        my ($self) = @_;
-        App::HomelyAlarm::Storage->instance->remove_recipient($self);
+    sub database_table {
+        return 'recipient';
     }
+    
+    around 'remove' => sub {
+        my ($orig,$self,$storage) = @_;
+        
+        $storage->dbh->do('DELETE FROM message WHERE recipient = ?',{},$self->database_id);
+        
+        return $self->$orig($storage);
+    };
     
     sub add_message {
-        my ($self,$message,$mode,$severity) = @_;
+        my ($self,$storage,%params) = @_;
         
+        $storage->dbh->do('INSERT INTO message 
+            (recipient,mode,message,severity,reference)
+            VALUES
+            (?,?,?,?)',
+            {},
+            $self->database_id,
+            $params{mode},
+            $params{message},
+            $params{severity},
+            $params{reference},
+        );
+    }
+    
+    sub last_message {
+        my ($self,$storage) = @_;
         # TODO
     }
-#    
-#    sub all_messages {
-#        my ($self) = @_;
-#        return sort { $a->timestamp <=> $b->timestamp }  @{$self->message_log};
-#    }
-#    
-#    sub last_message {
-#        my ($self) = @_;
-#        return ($self->all_messages)[-1];
-#    }
 }
 
 1;

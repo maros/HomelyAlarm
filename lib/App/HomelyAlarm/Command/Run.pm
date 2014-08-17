@@ -19,8 +19,6 @@ package App::HomelyAlarm::Command::Run {
     use URI::Escape qw(uri_escape);
     use Email::Stuffer;
     
-    use  App::HomelyAlarm::TwilioTransaction;
-    
     option 'twilio_sid' => (
         is              => 'rw',
         isa             => 'Str',
@@ -187,21 +185,29 @@ package App::HomelyAlarm::Command::Run {
         my $sid;
         
         if ($sid = $req->param('CallSid')) {
-            my $transaction = App::HomelyAlarm::TwilioTransaction->remove_transactions($sid);
+            my $message = App::HomelyAlarm::MessageLog->find_message($self->storage,$sid);
             return _reply_error(404,"Call not found",$req)
-                unless $transaction;
+                unless $message;
             
-            _log("Transaction status ".$transaction->recipient->telephone.": ".$req->param('CallStatus'));
+            _log("Transaction status ".$message->recipient->telephone.": ".$req->param('CallStatus'));
             if ($req->param('CallStatus') ne 'completed') {
                 # send fallback SMS
-                $self->run_sms($transaction->recipient,$transaction->message,$transaction->severity);
+                $message->set_failed($self->storage);
+                $self->run_sms($message->recipient,$message->message,$message->severity);
+            } else {
+                $message->set_success($self->storage);
             }
         } elsif ($sid = $req->param('SmsSid')) {
-            my $transaction = App::HomelyAlarm::TwilioTransaction->remove_transactions($sid);
+            my $message = App::HomelyAlarm::MessageLog->find_message($self->storage,$sid);
             return _reply_error(404,"SMS not found",$req)
-                unless $transaction;
+                unless $message;
             
-            _log("SMS status ".$transaction->recipient->telephone.": ".$req->param('SmsStatus'));
+            _log("SMS status ".$message->recipient->telephone.": ".$req->param('SmsStatus'));
+            if ($req->param('SmsStatus') ne 'completed') {
+                $message->set_failed($self->storage);
+            } else {
+                $message->set_success($self->storage);
+            }
         } else {
             _reply_error(404,"Missing parameters",$req)
         }
@@ -210,7 +216,7 @@ package App::HomelyAlarm::Command::Run {
     sub dispatch_GET_twilio_twiml {
         my ($self,$req) = @_;
         
-        my $call = App::HomelyAlarm::TwilioSid->get_call($req->param('CallSid'));
+        my $call = App::HomelyAlarm::MessageLog->find_message($self->storage,$req->param('CallSid'));
         return _reply_error(404,"Call not found",$req)
             unless $call;
         
@@ -292,7 +298,7 @@ TWIML
             return;
         }
         
-        $recipient->add_message($message,'email',$severity);
+        $recipient->add_message($self->storage,$message,'email',$severity);
         
         Email::Stuffer
             ->from($self->sender_email)
@@ -328,11 +334,12 @@ TWIML
             StatusMethod    => 'POST',
             sub {
                 my ($data,$headers) = @_;
-                App::HomelyAlarm::TwilioTransaction->new(
-                    message     => $message, 
-                    sid         => $data->{sid},
-                    severity    => $severity,#
-                    recipient   => $recipient,
+                $recipient->add_message(
+                    $self->storage,
+                    message     => $message,
+                    mode        => 'sms',
+                    severity    => $severity,
+                    reference   => $data->{sid},
                 );
             },
         )
@@ -347,7 +354,6 @@ TWIML
             return;
         }
         
-        $recipient->add_message($message,'call',$severity);
         
         $self->run_twilio(
             'POST',
@@ -362,11 +368,12 @@ TWIML
             Timeout         => 60,
             sub {
                 my ($data,$headers) = @_;
-                App::HomelyAlarm::TwilioTransaction->new(
-                    message     => $message, 
-                    recipient   => $recipient,
-                    sid         => $data->{sid},
+                $recipient->add_message(
+                    $self->storage,
+                    message     => $message,
+                    mode        => 'call',
                     severity    => $severity,
+                    reference   => $data->{sid},
                 );
             },
         );
@@ -411,8 +418,6 @@ TWIML
                 }
             }
         }
-        
-        $self->write_recipients();
     }
     
     sub authenticate_alarm {

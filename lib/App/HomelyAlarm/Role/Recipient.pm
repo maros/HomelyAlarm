@@ -2,6 +2,7 @@ package App::HomelyAlarm::Role::Recipient {
     use 5.014; 
 
     use Moose::Role;
+    with qw(App::HomelyAlarm::Role::Severity);
     
     has 'telephone' => (
         is              => 'rw',
@@ -31,12 +32,17 @@ package App::HomelyAlarm::Role::Recipient {
         predicate       => 'has_only_call',
     );
     
-    has 'severity' => (
-        is              => 'rw',
-        isa             => 'App::HomelyAlarm::Type::Severity',
-        documentation   => 'Specify severity level',
-        predicate       => 'has_severity',
-    );
+    sub for_filter {
+        my ($self) = @_;
+        my %filter;
+        foreach my $field (qw(telephone email only_vacation only_call severity_level)) {
+            my $value = $self->$field;
+            next
+                unless defined $value;
+            $filter{$field} = $value;
+        }
+        return %filter;
+    }
     
 #    sub compare_all {
 #        my ($self,$other) = @_;

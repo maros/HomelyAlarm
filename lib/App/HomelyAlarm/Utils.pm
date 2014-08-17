@@ -32,6 +32,16 @@ package App::HomelyAlarm::Utils {
         return;
     }
     
+    sub severity_name {
+        my ($severity) = @_;
+        my $level = 0;
+        foreach (@SEVERITY) {
+            $level++;
+            return $_ 
+                if ($_ eq $severity);
+        }
+        return;
+    }
 }
 
 1;

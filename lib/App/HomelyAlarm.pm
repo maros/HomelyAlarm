@@ -18,10 +18,6 @@ package App::HomelyAlarm {
         is              => 'ro',
         isa             => 'App::HomelyAlarm::Storage',
         lazy_build      => 1,
-        handles         => [qw(
-            recipients_list
-            recipients_count
-        )],
     );
     
     option 'database' => (
@@ -35,7 +31,7 @@ package App::HomelyAlarm {
     
     sub _build_storage {
         my ($self) = @_;
-        return App::HomelyAlarm::Storage->instance( $self->database );
+        return App::HomelyAlarm::Storage->new( database => $self->database );
     }
     
     __PACKAGE__->meta->make_immutable;

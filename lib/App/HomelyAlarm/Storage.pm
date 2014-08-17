@@ -22,22 +22,6 @@ has 'current_version' => (
     required        => 1,
 );
 
-our @FIELDS = qw(email telephone only_vacation only_call severity);
-our $INSTANCE;
-
-sub instance {
-    my ($class,$database) = @_;
-    
-    return $INSTANCE
-        if defined $INSTANCE;
-    
-    die("Database missing")
-        unless defined $database;
-    
-    $INSTANCE = $class->new( database => $database );
-    return $INSTANCE;
-}
-
 sub _build_current_version {
     my ($self) = @_;
      
@@ -95,112 +79,6 @@ sub _build_dbh {
     return $dbh;
 }
 
-sub _filter {
-    my ($self,$sql,$filter) = @_;
-    
-    my (@where_sql,@where_data);
-    if (defined $filter) {
-        foreach my $field (@FIELDS) {
-            
-            if (blessed $filter 
-                && $filter->does('App::HomelyAlarm::Role::Recipient')) {
-                my $predicate = 'has_'.$field;
-                if ($filter->can($predicate) 
-                    && $filter->$predicate) {
-                    push(@where_sql,$field.'=?');
-                    push(@where_data,$filter->$field);
-                }
-            } elsif (ref $filter eq 'HASH'
-                && defined $filter->{$field}) {
-                push(@where_sql,$field.'=?');
-                push(@where_data,$filter->{$field});
-            }
-        }
-        if (scalar @where_data) {
-            $sql .= ' WHERE '.join(' AND ',@where_sql);
-        }
-    }
-    
-    return ($sql,@where_data);
-}
-
-sub recipients_list {
-    my ($self,$filter) = @_;
-    
-    my $sql = "SELECT 
-        id,".join(",",@FIELDS)."
-        FROM recipient";
-    
-    my ($sql_filtered,@sql_data) = $self->_filter($sql,$filter);
-    my $sth = $self->dbh->prepare($sql_filtered);
-    $sth->execute(@sql_data);
-    
-    my @recipients;
-    while (my $row = $sth->fetchrow_arrayref) {
-        my $i = 1;
-        my %params = (
-            database_id => $row->[0],
-        );
-        my $index = 0;
-        foreach my $field (@FIELDS) {
-            $index++;
-            next
-                unless defined $row->[$index];
-            $params{$field} = $row->[$index];
-        }
-        push(@recipients,App::HomelyAlarm::Recipient->new(%params));
-    }
-    
-    $sth->finish();
-    
-    return @recipients;
-}
-
-sub recipients_count {
-    my ($self,$filter) = @_;
-    
-    my ($sql_filtered,@sql_data) = $self->_filter("SELECT COUNT(1) FROM recipient",$filter);
-    my $sth = $self->dbh->prepare($sql_filtered);
-    $sth->execute(@sql_data);
-    my ($count) = $sth->fetchrow();
-    $sth->finish();
-    
-    return $count;
-}
-
-sub remove_recipient {
-    my ($self,$recipient) = @_;
-    
-    $self->dbh->do('DELETE FROM message WHERE recipient = ?',{},$recipient->database_id);
-    $self->dbh->do('DELETE FROM recipient WHERE id = ?',{},$recipient->database_id);
-}
-
-sub store_recipient {
-    my ($self,$recipient) = @_;
-    
-    my ($sql,@data);
-    
-    foreach my $field (@FIELDS) {
-        push(@data,$recipient->$field);
-    }
-    
-    if ($recipient->is_in_database) {
-        $sql = 'UPDATE recipient SET '.
-            join(', ', map { $_.' = ?' } @FIELDS).
-            ' database_id = ?';
-        push(@data,$recipient->database_id);
-    } else {
-        $sql = 'INSERT INTO recipient ('.
-            join(', ',@FIELDS).
-            ') VALUES ('.
-            join(', ',( ('?') x scalar @FIELDS)).
-            ')';
-    }
-    
-    $self->dbh->do($sql,{},@data);
-    
-}
-
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -212,16 +90,18 @@ CREATE TABLE IF NOT EXISTS recipient (
   telephone TEXT,
   only_vacation INTEGER,
   only_call INTEGER,
-  severity TEXT
+  severity_level INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS message (
   id INTEGER NOT NULL PRIMARY KEY,
   recipient INTEGER NOT NULL,
-  timestamp INTEGER NOT NULL,
+  timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   mode TEXT NOT NULL,
-  message TEST NOT NULL,
-  reference TEXT
+  message TEXT NOT NULL,
+  severity_level INTEGER NOT NULL,
+  reference TEXT,
+  status INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS message_recipient_index ON message(recipient);
