@@ -5,6 +5,13 @@ package App::HomelyAlarm::MessageLog {
     with qw(App::HomelyAlarm::Role::Severity
         App::HomelyAlarm::Role::Database);
     
+    has 'recipient' => (
+        is          => 'ro',
+        isa         => 'App::HomelyAlarm::Recipient',
+        required    => 1,
+        weak_ref    => 1,
+    );
+    
     has 'message' => (
         is          => 'ro',
         isa         => 'Str',
@@ -39,7 +46,7 @@ package App::HomelyAlarm::MessageLog {
     );
     
     sub database_fields {
-        return qw(message timestamp mode severity_level reference status) # TODO introspection
+        return qw(message timestamp mode severity_level reference status recipient) # TODO introspection
     }
     
     sub database_table {
