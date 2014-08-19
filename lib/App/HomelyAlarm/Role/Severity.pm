@@ -14,8 +14,9 @@ package App::HomelyAlarm::Role::Severity {
         my $self = shift;
         my %args = @_;
         
-        if (my $severity = delete $args{severity_level}) {
-            $args{severity} =  App::HomelyAlarm::Utils::severity_name($severity);
+        my $severity = App::HomelyAlarm::Utils::severity_name(delete $args{severity_level});
+        if (defined $severity) {
+            $args{severity} //= $severity;
         }
         return $self->$orig(%args);
     };

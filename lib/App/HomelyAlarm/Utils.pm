@@ -23,6 +23,8 @@ package App::HomelyAlarm::Utils {
     
     sub severity_level {
         my ($severity) = @_;
+        return
+            unless $severity;
         my $level = 0;
         foreach (@SEVERITY) {
             $level++;
@@ -34,6 +36,8 @@ package App::HomelyAlarm::Utils {
     
     sub severity_name {
         my ($severity) = @_;
+        return
+            unless $severity;
         my $level = 0;
         foreach (@SEVERITY) {
             $level++;

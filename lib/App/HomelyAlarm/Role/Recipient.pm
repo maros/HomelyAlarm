@@ -168,7 +168,7 @@ package App::HomelyAlarm::Role::Recipient {
     
     sub severity_level {
         my ($self) = @_;
-        return 0
+        return
             unless $self->has_severity;
         return App::HomelyAlarm::Utils::severity_level($self->severity);
     }
