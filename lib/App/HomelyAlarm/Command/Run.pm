@@ -299,7 +299,12 @@ TWIML
             return;
         }
         
-        $recipient->add_message($self->storage,$message,'email',$severity);
+        $recipient->add_message($self->storage,
+            message     => $message,
+            mode        => 'email',
+            severity    => $severity,
+            reference   => 'TODO msgid',
+        );
         
         Email::Stuffer
             ->from($self->sender_email)
@@ -322,9 +327,7 @@ TWIML
                 if $recipient->has_email;
             return;
         }
-        
-        $recipient->add_message($message,'sms',$severity);
-        
+                
         $self->run_twilio(
             'POST',
             'Messages',
@@ -354,7 +357,6 @@ TWIML
                 if $recipient->has_email;
             return;
         }
-        
         
         $self->run_twilio(
             'POST',

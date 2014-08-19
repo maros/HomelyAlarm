@@ -26,22 +26,24 @@ package App::HomelyAlarm::Recipient {
     sub add_message {
         my ($self,$storage,%params) = @_;
         
-        $storage->dbh_do('INSERT INTO message 
-            (recipient,mode,message,severity,reference)
-            VALUES
-            (?,?,?,?)',
-            $self->database_id,
-            $params{mode},
-            $params{message},
-            $params{severity},
-            $params{reference},
-        );
+        App::HomelyAlarm::MessageLog
+            ->new(
+                recipient   => $self,
+                (map { $_ => $params{$_} } qw(mode message severity reference))
+            )
+            ->store($storage);
     }
     
     sub last_message {
         my ($self,$storage) = @_;
         
         return App::HomelyAlarm::MessageLog->last_message_recipient($storage,$self->database_id);
+    }
+    
+    sub message_log {
+        my ($self,$storage) = @_;
+        
+        return App::HomelyAlarm::MessageLog->list($storage,{ recipient => $self->database_id });
     }
 }
 
