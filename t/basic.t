@@ -15,6 +15,9 @@ use MIME::Base64 qw(encode_base64);
 
 use_ok( 'App::HomelyAlarm::Command::Run' ); 
 
+my $recipients_database = 't/testdb.db';
+unlink($recipients_database);
+
 {
     package App::HomelyAlarm::Test;
     use Moose;
@@ -30,6 +33,7 @@ use_ok( 'App::HomelyAlarm::Command::Run' );
         my $method = shift;
         my $action = shift;
         my $callback = pop;
+        $callback->({ sid => 'FakeSid' },{});
         $self->last_request({
             method  => $method,
             action  => $action,
@@ -44,7 +48,7 @@ my $ha = App::HomelyAlarm::Test->new(
     secret              => 'SECRET',
     caller_number       => '123456789',
     sender_email        => 'homely_alarm@cpan.org',
-    database            => 't/testdb.db',
+    database            => $recipients_database,
 );
 
 my $recipient = App::HomelyAlarm::Recipient->new(
@@ -139,13 +143,14 @@ my $test = Plack::Test->create($ha->app);
 
 # Test message log
 {
-     is(scalar @{$recipient->message_log},2,'Has two messages');
-     is($recipient->message_log->[0]->message,'Test alarm run','First message ok');
-     is($recipient->message_log->[0]->severity,'high','First severity ok');
-     is($recipient->message_log->[1]->message,'Test alarm intrusion','Second message ok');
+     my @message_log = $recipient->message_log($ha->storage);
+     is(scalar @message_log,2,'Has two messages');
+     is($message_log[0]->message,'Test alarm run','First message ok');
+     is($message_log[0]->severity,'high','First severity ok');
+     is($message_log[1]->message,'Test alarm intrusion','Second message ok');
 }
 
-unlink 't/testdb.db';
+#unlink $recipients_database;
 
 sub alarm_request {
     my ($path,$message,$timer) = @_;
