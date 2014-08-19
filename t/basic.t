@@ -83,7 +83,7 @@ my $test = Plack::Test->create($ha->app);
     ok($ha->has_timer,'Timer is set');
     #ok($ha->has_message,'Message is set');
     #is($ha->message,'Test alarm was detected','Message is set');
-    isa_ok($ha->timer,'EV::Timer');
+    #isa_ok($ha->timer,'EV::Timer');
     $ha->clear_timer();
 }
 
@@ -137,14 +137,13 @@ my $test = Plack::Test->create($ha->app);
     $cv->recv;
 }
 
-## Test message log
-#{
-#    my $recipient = $ha->recipients->[0];
-#    is(scalar @{$recipient->message_log},2,'Has two messages');
-#    is($recipient->message_log->[0]->message,'Test alarm run','First message ok');
-#    is($recipient->message_log->[0]->severity,'high','First severity ok');
-#    is($recipient->message_log->[1]->message,'Test alarm intrusion','Second message ok');
-#}
+# Test message log
+{
+     is(scalar @{$recipient->message_log},2,'Has two messages');
+     is($recipient->message_log->[0]->message,'Test alarm run','First message ok');
+     is($recipient->message_log->[0]->severity,'high','First severity ok');
+     is($recipient->message_log->[1]->message,'Test alarm intrusion','Second message ok');
+}
 
 unlink 't/testdb.db';
 
