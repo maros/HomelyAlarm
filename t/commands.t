@@ -58,7 +58,7 @@ my $ha = App::HomelyAlarm->new(database => $recipients_database);
         telephone => '+431234',
     );
     
-    @recipients = App::HomelyAlarm::Role::Database->list($ha->storage);
+    @recipients = App::HomelyAlarm::Recipient->list($ha->storage);
     is(scalar(@recipients),1,'Has one recipient after removal');
     is($recipients[0]->email,'test@k-1.com','Removed recipient ok');
 }
@@ -69,7 +69,8 @@ sub run_command {
     my $package = 'App::HomelyAlarm::Command::'.ucfirst(lc($command));
     use_ok($package); 
     return $package->new(
-        database => $recipients_database,
+        database    => $recipients_database,
+        storage     => $ha->storage,
         %params,
     )->run;
 }
