@@ -38,7 +38,7 @@ package App::HomelyAlarm::Utils {
         foreach (@SEVERITY) {
             $level++;
             return $_ 
-                if ($_ eq $severity);
+                if ($severity == $level);
         }
         return;
     }
