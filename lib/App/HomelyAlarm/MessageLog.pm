@@ -42,7 +42,8 @@ package App::HomelyAlarm::MessageLog {
     
     has 'status' => (
         is          => 'rw',
-        isa         => 'Bool',
+        isa         => 'Int',
+        default     => 0,
     );
     
     sub database_fields {
