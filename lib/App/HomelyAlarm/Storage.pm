@@ -73,7 +73,7 @@ sub _build_dbh {
     
     $self->current_version($latest_version);
     unless ($database_ok) {
-        $dbh->dbh('INSERT OR REPLACE INTO meta (key,value) VALUES (?,?)','database_version',$latest_version);
+        $dbh->do('INSERT OR REPLACE INTO meta (key,value) VALUES (?,?)',{},'database_version',$latest_version);
     }
      
     return $dbh;
