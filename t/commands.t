@@ -10,7 +10,7 @@ use warnings;
 
 use_ok( 'App::HomelyAlarm' ); 
 
-my $recipients_database = 't/recipients.db';
+my $recipients_database = 't/testdb.db';
 unlink($recipients_database);
 
 my $ha = App::HomelyAlarm->new(database => $recipients_database);

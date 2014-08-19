@@ -51,6 +51,7 @@ package App::HomelyAlarm::Command::Run {
         is              => 'rw',
         predicate       => 'has_timer',
         clearer         => 'clear_timer',
+	isa		=> 'Ref',
     );
 
     has 'self_url' => (
