@@ -40,6 +40,11 @@ package App::HomelyAlarm::Role::Database {
         }
         
         $storage->dbh_do($sql,@data);
+        
+        unless ($self->is_in_database) {
+            my $id = $storage->dbh->last_insert_id(undef, undef, $table, 'id');
+            $self->database_id($id);
+        }
     }
     
     sub remove {
@@ -116,6 +121,7 @@ package App::HomelyAlarm::Role::Database {
         my ($class,$hashref) = @_;
         return
             unless defined $hashref;
+        $hashref->{database_id} = delete $hashref->{id};
         foreach my $key (keys %{$hashref}) {
             delete $hashref->{$key} 
                 unless defined $hashref->{$key};
