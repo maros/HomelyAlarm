@@ -393,7 +393,9 @@ TWIML
         
         RECIPIENT:
         foreach my $recipient (App::HomelyAlarm::Recipient->list($self->storage)) {
-            if ($recipient->severity_level > $severity_level) {
+            my $recipient_severity_level = $recipient->severity_level;
+            if (defined $recipient_severity_level
+                && $recipient_severity_level > $severity_level) {
                 _log("Skip ".$recipient->stringify(1).": Severity ".$recipient->severity);
                 next;
             };

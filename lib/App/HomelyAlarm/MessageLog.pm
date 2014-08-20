@@ -7,7 +7,8 @@ package App::HomelyAlarm::MessageLog {
     
     has 'recipient' => (
         is          => 'ro',
-        isa         => 'App::HomelyAlarm::Recipient',
+        isa         => 'Int',
+        #isa         => 'App::HomelyAlarm::Recipient',
         required    => 1,
         weak_ref    => 1,
     );
