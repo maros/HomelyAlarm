@@ -2,7 +2,7 @@
 
 # t/basic.t - test basic usage
 
-use Test::Most tests => 26+1;
+use Test::Most tests => 24+1;
 use Test::NoWarnings;
 
 use strict;
