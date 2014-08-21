@@ -41,7 +41,7 @@ sub _build_dbh {
     {
         no warnings 'once';
         $dbh = DBI->connect("dbi:SQLite:dbname=$file","","",{ sqlite_unicode => 1 })
-            or die('Could not connect to database: %s',$DBI::errstr);
+            or die('Could not connect to database: '.$DBI::errstr);
     }
      
     # Set dbh
@@ -58,7 +58,7 @@ sub _build_dbh {
             $sql .= $line;
             if ($sql =~ m/;/) {
                 $dbh->do($sql)
-                    or die('Could not excecute sql %s: %s',$sql,$dbh->errstr);
+                    or die("Could not excecute sql $sql: ".$dbh->errstr);
                 undef $sql;
             }
         }
