@@ -404,7 +404,8 @@ TWIML
             
             if (defined $last_message
                 && $last_message->message eq $message
-                && $last_message->ago < 60*10) {
+                && $last_message->ago < 60*10
+                && $last_message->status ~~ [qw(1 0)]) {
                 _log("Skip ".$recipient->stringify(1).": Duplicate message");
                 next;
             }
