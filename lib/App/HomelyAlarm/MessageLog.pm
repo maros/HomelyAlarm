@@ -77,7 +77,7 @@ package App::HomelyAlarm::MessageLog {
         my $sql = 'SELECT '.
             join(',',$class->database_fields).
             ' FROM '.
-            $class->database_field.
+            $class->database_table.
             ' WHERE reference = ?';
         my $sth = $storage->dbh->prepare($sql);
         $sth->execute($reference);
@@ -95,6 +95,11 @@ package App::HomelyAlarm::MessageLog {
         my $sth = $storage->dbh->prepare($sql);
         $sth->execute($recipient);
         return $class->_inflate($sth->fetchrow_hashref());
+    }
+    
+    sub ago {
+        my ($self) = @_;
+        return (time - $self->timestamp);
     }
     
     __PACKAGE__->meta->make_immutable;
