@@ -63,12 +63,14 @@ package App::HomelyAlarm::MessageLog {
     
     sub set_failed {
         my ($self,$storage) = @_;
-        $storage->dbh_do('UPDATE '.$self->database_table.' SET status = 1 WHERE id = ?',$self->database_id);
+        $self->status(1);
+        $self->store($storage);
     }
     
     sub set_success {
         my ($self,$storage) = @_;
-        $storage->dbh_do('UPDATE '.$self->database_table.' SET status = 2 WHERE id = ?',$self->database_id);
+        $self->status(2);
+        $self->store;
     }
     
     sub find_message {
