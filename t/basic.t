@@ -81,7 +81,7 @@ my $test = Plack::Test->create($ha->app);
 
 # Test alarm
 {
-    my $res = alarm_request('intrusion','Test alarm was detected');
+    my $res = alarm_request('intrusion','Test alarm was detected!');
     is($res->code,200,'Status ok');
     is($res->content,'OK','Response ok');
     ok($ha->has_timer,'Timer is set');
