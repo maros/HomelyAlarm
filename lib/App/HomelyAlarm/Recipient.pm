@@ -4,9 +4,7 @@ package App::HomelyAlarm::Recipient {
     use Moose;
     with qw(App::HomelyAlarm::Role::Recipient
         App::HomelyAlarm::Role::Database);
-    
-    use App::HomelyAlarm::MessageLog;
-    
+        
     sub database_fields {
         return qw(telephone email only_call only_vacation severity_level) # TODO introspection
     }
