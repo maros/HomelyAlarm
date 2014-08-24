@@ -19,6 +19,10 @@ requires        'Digest::HMAC_SHA1'             => 0;
 requires        'JSON::XS'                      => 0;
 requires        'URI::Escape'                   => 0;
 requires        'DBD::SQLite'                   => 0;
+requires        'Try::Tiny'                     => 0;
+requires        'MIME::Base64'                  => 0;
+requires        'Email::Stuffer'                => 0;
+requires        'MooseX::App'                   => 1.30;
 
 build_requires  'Test::Most'                    => 0;
 build_requires  'Test::NoWarnings'              => 0;
