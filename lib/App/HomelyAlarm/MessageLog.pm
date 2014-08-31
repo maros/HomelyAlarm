@@ -7,8 +7,7 @@ package App::HomelyAlarm::MessageLog {
     
     has 'recipient' => (
         is          => 'ro',
-        isa         => 'Int',
-        #isa         => 'App::HomelyAlarm::Recipient',
+        isa         => 'App::HomelyAlarm::Recipient',
         required    => 1,
         weak_ref    => 1,
     );
@@ -76,33 +75,41 @@ package App::HomelyAlarm::MessageLog {
     sub find_message {
         my ($class,$storage,$reference) = @_;
         
-        my $sql = 'SELECT '.
+        my $sql = 'SELECT id,'.
             join(',',$class->database_fields).
             ' FROM '.
             $class->database_table.
             ' WHERE reference = ?';
         my $sth = $storage->dbh->prepare($sql);
         $sth->execute($reference);
-        return $class->_inflate($sth->fetchrow_hashref());
+        return $class->_inflate_object($storage,$sth->fetchrow_hashref());
     }
     
     sub last_message_recipient {
         my ($class,$storage,$recipient) = @_;
         
-        my $sql = 'SELECT '.
+        my $sql = 'SELECT id,'.
             join(',',$class->database_fields).
             ' FROM '.
             $class->database_table.
             ' WHERE recipient = ? ORDER BY timestamp DESC LIMIT 1';
         my $sth = $storage->dbh->prepare($sql);
         $sth->execute($recipient);
-        return $class->_inflate($sth->fetchrow_hashref());
+        return $class->_inflate_object($storage,$sth->fetchrow_hashref());
     }
     
     sub ago {
         my ($self) = @_;
         return (time - $self->timestamp);
     }
+    
+    around '_inflate' => sub {
+        my ($orig,$class,$storage,$hashref) = @_;
+        
+        my $return = $class->$orig($storage,$hashref);
+        $return->{recipient} = App::HomelyAlarm::Recipient->get($storage,$return->{recipient});
+        return $return;
+    };
     
     __PACKAGE__->meta->make_immutable;
 }

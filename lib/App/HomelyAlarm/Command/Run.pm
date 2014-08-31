@@ -190,6 +190,7 @@ package App::HomelyAlarm::Command::Run {
             return _reply_error(404,"Call not found",$req)
                 unless $message;
             
+            
             _log("Transaction status ".$message->recipient->telephone.": ".$req->param('CallStatus'));
             if ($req->param('CallStatus') ne 'completed') {
                 # send fallback SMS

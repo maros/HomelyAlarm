@@ -3,6 +3,8 @@ package App::HomelyAlarm::Role::Database {
     use Moose::Role;
     requires qw(database_fields database_table);
     
+    my %CACHE;
+    
     has 'database_id' => (
         is              => 'rw',
         isa             => 'Int',
@@ -29,7 +31,7 @@ package App::HomelyAlarm::Role::Database {
         if ($self->is_in_database) {
             $sql = 'UPDATE '.$table.' SET '.
                 join(', ', map { $_.' = ?' } @fields).
-                ' WHERE database_id = ?';
+                ' WHERE id = ?';
             push(@data,$self->database_id);
         } else {
             $sql = 'INSERT INTO '.$table.' ('.
@@ -67,7 +69,7 @@ package App::HomelyAlarm::Role::Database {
         
         my @result;
         while (my $row = $sth->fetchrow_hashref) {
-            my $item = $class->_inflate($row);
+            my $item = $class->_inflate_object($storage,$row);
             push(@result,$item)
                 if defined $item;
         }
@@ -85,6 +87,26 @@ package App::HomelyAlarm::Role::Database {
         $sth->finish();
         
         return $count;
+    }
+    
+    sub get {
+        my ($class,$storage,$id) = @_;
+        
+        my $identifier = $class.'-'.$id;
+        return $CACHE{$identifier}
+            if defined $CACHE{$identifier};
+        
+        my $sql = "SELECT 
+            id,".join(",",$class->database_fields)."
+            FROM ".$class->database_table."
+            WHERE id = ?";
+        my $sth = $storage->dbh->prepare($sql);
+        $sth->execute($id);
+        
+        my $item = $class->_inflate_object($storage,$sth->fetchrow_hashref);
+        $sth->finish();
+        
+        return $item;
     }
     
     sub _filter {
@@ -117,8 +139,24 @@ package App::HomelyAlarm::Role::Database {
         return ($sql,@where_data);
     }
     
+    sub _inflate_object {
+        my ($class,$storage,$hashref) = @_;
+        return
+            unless defined $hashref;
+        
+        my $ref = $class->_inflate($storage,$hashref);
+        
+        return
+            unless defined $ref;
+        
+        my $object = $class->new( %{$ref} );
+        my $identifier = $class.'-'.$object->database_id;
+        $CACHE{$identifier} = $object;
+        return $object;
+    }
+    
     sub _inflate {
-        my ($class,$hashref) = @_;
+        my ($class,$storage,$hashref) = @_;
         return
             unless defined $hashref;
         $hashref->{database_id} = delete $hashref->{id};
@@ -126,7 +164,8 @@ package App::HomelyAlarm::Role::Database {
             delete $hashref->{$key} 
                 unless defined $hashref->{$key};
         }
-        return $class->new( %{$hashref});
+        
+        return $hashref;
     }
     
 }

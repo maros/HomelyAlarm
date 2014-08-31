@@ -26,7 +26,7 @@ package App::HomelyAlarm::Recipient {
         
         App::HomelyAlarm::MessageLog
             ->new(
-                recipient   => $self->database_id,
+                recipient   => $self,
                 (map { $_ => $params{$_} } qw(mode message severity reference))
             )
             ->store($storage);
