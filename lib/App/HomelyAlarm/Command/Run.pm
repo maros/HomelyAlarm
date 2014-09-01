@@ -223,11 +223,11 @@ package App::HomelyAlarm::Command::Run {
             unless $call;
         
         my $message = $call->message;
-        $message =~ s/&/&amp;/g
-        $message =~ s/>/&gt;/g
-        $message =~ s/</&lt;/g
-        $message =~ s/'/&apos;/g
-        $message =~ s/"/&quot;/g
+        $message =~ s/&/&amp;/g;
+        $message =~ s/>/&gt;/g;
+        $message =~ s/</&lt;/g;
+        $message =~ s/'/&apos;/g;
+        $message =~ s/"/&quot;/g;
         
         return [
             200,
