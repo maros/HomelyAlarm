@@ -69,7 +69,7 @@ package App::HomelyAlarm::MessageLog {
     sub set_success {
         my ($self,$storage) = @_;
         $self->status(2);
-        $self->store;
+        $self->store($storage);
     }
     
     sub find_message {
