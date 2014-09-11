@@ -155,7 +155,7 @@ package App::HomelyAlarm::Command::Run {
             ));
         }
             
-        _reply_ok();
+        return _reply_ok();
     }
     
     sub dispatch_POST_alarm_reset {
@@ -175,7 +175,7 @@ package App::HomelyAlarm::Command::Run {
         _log("Run immediate alarm: $message");
         $self->run_notify($message,$severity);
         
-        _reply_ok();
+        return _reply_ok();
     }
     
     *dispatch_POST_alarm_alert = \&dispatch_POST_alarm_run;
@@ -211,8 +211,10 @@ package App::HomelyAlarm::Command::Run {
                 $message->set_success($self->storage);
             }
         } else {
-            _reply_error(404,"Missing parameters",$req)
+            return _reply_error(404,"Missing parameters",$req);
         }
+        
+        return _reply_ok();
     }
     
     sub dispatch_GET_twilio_twiml {
