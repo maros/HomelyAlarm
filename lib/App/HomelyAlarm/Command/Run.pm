@@ -178,6 +178,22 @@ package App::HomelyAlarm::Command::Run {
         return _reply_ok();
     }
     
+    sub dispatch_POST_alarm_event {
+        my ($self,$req) = @_;
+        
+        my $message = $req->param('message');
+        my $severity = $req->param('severity') || "medium";
+        
+        my $new_event = App::HomelyAlarm::EventLog->new(
+            message     => $message,
+            severity    => $severity,
+        );
+        
+        $new_event->store($self->storage);
+        
+        return _reply_ok();
+    }
+    
     *dispatch_POST_alarm_alert = \&dispatch_POST_alarm_run;
     
     sub dispatch_POST_twilio_status {

@@ -13,6 +13,7 @@ package App::HomelyAlarm {
     use App::HomelyAlarm::Meta::Attribute::Filter;
     use App::HomelyAlarm::Meta::Attribute::Database;
     use App::HomelyAlarm::MessageLog;
+    use App::HomelyAlarm::EventLog;
     use App::HomelyAlarm::Recipient;
     use App::HomelyAlarm::Storage;
     
