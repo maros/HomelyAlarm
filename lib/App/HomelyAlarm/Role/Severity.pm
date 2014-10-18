@@ -2,11 +2,11 @@ package App::HomelyAlarm::Role::Severity {
     
     use Moose::Role;
     
-    has 'severity' => (
+    has 'severity_level' => (
         is              => 'rw',
         isa             => 'App::HomelyAlarm::Type::Severity',
         documentation   => 'Specify severity level',
-        predicate       => 'has_severity',
+        predicate       => 'has_severity_level',
     );
     
     around 'BUILDARGS' => sub {
@@ -14,16 +14,20 @@ package App::HomelyAlarm::Role::Severity {
         my $self = shift;
         my %args = @_;
         
-        my $severity = App::HomelyAlarm::Utils::severity_name(delete $args{severity_level});
-        if (defined $severity) {
-            $args{severity} //= $severity;
+        if (defined $args{severity_level}
+            && $args{severity_level} !~ /^\d+$/) {
+            $args{severity_level} = App::HomelyAlarm::Utils::severity_level($args{severity_level});
+        }
+        if (defined $args{severity}) {
+            my $severity = delete $args{severity};
+            $args{severity_level} ||= App::HomelyAlarm::Utils::severity_level($severity);
         }
         return $self->$orig(%args);
     };
     
-    sub severity_level {
+    sub severity {
         my ($self) = @_;
-        return App::HomelyAlarm::Utils::severity_level($self->severity);
+        return App::HomelyAlarm::Utils::severity_name($self->severity_level);
     }
 }
 

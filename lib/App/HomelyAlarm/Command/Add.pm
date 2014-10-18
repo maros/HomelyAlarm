@@ -10,7 +10,18 @@ package App::HomelyAlarm::Command::Add {
     option '+email' => ();
     option '+only_vacation' => ( default => 0 );
     option '+only_call' => ( default => 0 );
-    option '+severity' => ();
+    option '+severity_level' => ( cmd_flag => 'severity' );
+    
+    sub _error {
+        my ($self,$message) = @_;
+        
+        print MooseX::App::Message::Envelope->new(
+            $self->meta->command_message(
+                header          => $message,
+                type            => "error",
+            )
+        )->stringify;
+    }
     
     sub run {
         my ($self) = @_;

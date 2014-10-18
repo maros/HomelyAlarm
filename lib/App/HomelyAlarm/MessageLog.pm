@@ -30,7 +30,7 @@ package App::HomelyAlarm::MessageLog {
         required    => 1,
     );
     
-    has '+severity' => (
+    has '+severity_level' => (
         required    => 1,
     );
     

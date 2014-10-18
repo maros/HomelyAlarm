@@ -10,7 +10,7 @@ package App::HomelyAlarm::Command::Remove {
     option '+email' => ();
     option '+only_vacation' => ();
     option '+only_call' => ();
-    option '+severity' => ();
+    option '+severity_level' => ( cmd_flag => 'severity' );
     
     sub run {
         my ($self) = @_;

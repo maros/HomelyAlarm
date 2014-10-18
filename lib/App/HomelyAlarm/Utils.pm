@@ -17,7 +17,7 @@ package App::HomelyAlarm::Utils {
         message { 'Not a valid telephone number (needs to begin with intl. prefix)' };
     
     subtype 'App::HomelyAlarm::Type::Severity',
-        as enum(\@SEVERITY);
+        as enum([ map { $_+1,$SEVERITY[$_]  } 0..$#SEVERITY ]);
     
     no Moose::Util::TypeConstraints;
     

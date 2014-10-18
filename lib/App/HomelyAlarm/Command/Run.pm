@@ -211,7 +211,7 @@ package App::HomelyAlarm::Command::Run {
             if ($req->param('CallStatus') ne 'completed') {
                 # send fallback SMS
                 $message->set_failed($self->storage);
-                $self->run_sms($message->recipient,$message->message,$message->severity);
+                $self->run_sms($message->recipient,$message->message,$message->severity_level);
             } else {
                 $message->set_success($self->storage);
             }
@@ -316,19 +316,21 @@ TWIML
     }
     
     sub run_email {
-        my ($self,$recipient,$message,$severity) = @_;
+        my ($self,$recipient,$message,$severity_level) = @_;
         
         unless ($recipient->has_email) {
-            $self->run_sms($recipient,$message,$severity)
+            $self->run_sms($recipient,$message,$severity_level)
                 if $recipient->has_telephone;
             return;
         }
         
+        my $severity = App::HomelyAlarm::Utils::severity_name($severity_level);
+        
         $recipient->add_message($self->storage,
-            message     => $message,
-            mode        => 'email',
-            severity    => $severity,
-            reference   => 'TODO msgid',
+            message         => $message,
+            mode            => 'email',
+            severity_level  => $severity_level,
+            reference       => 'TODO msgid',
         );
         
         Email::Stuffer
@@ -345,10 +347,10 @@ TWIML
     }
     
     sub run_sms {
-        my ($self,$recipient,$message,$severity) = @_;
+        my ($self,$recipient,$message,$severity_level) = @_;
         
         unless ($recipient->has_telephone) {
-            $self->run_email($recipient,$message,$severity)
+            $self->run_email($recipient,$message,$severity_level)
                 if $recipient->has_email;
             return;
         }
@@ -365,10 +367,10 @@ TWIML
                 my ($data,$headers) = @_;
                 $recipient->add_message(
                     $self->storage,
-                    message     => $message,
-                    mode        => 'sms',
-                    severity    => $severity,
-                    reference   => $data->{sid},
+                    message         => $message,
+                    mode            => 'sms',
+                    severit_level   => $severity_level,
+                    reference       => $data->{sid},
                 );
             },
         )
