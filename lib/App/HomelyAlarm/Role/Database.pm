@@ -1,7 +1,7 @@
 package App::HomelyAlarm::Role::Database {
     
     use Moose::Role;
-    requires qw(database_fields database_table);
+    requires qw(database_table);
     
     my %CACHE;
     
@@ -10,6 +10,19 @@ package App::HomelyAlarm::Role::Database {
         isa             => 'Int',
         predicate       => 'is_in_database',
     );
+    
+    sub database_fields {
+        my ($self) = @_;
+        
+        my @fields;
+        my $meta = $self->meta;
+        foreach my $attribute ($meta->get_all_attributes) {
+            next
+                if $attribute->name eq 'database_id';
+            push(@fields,$attribute->name);
+        }
+        return @fields;
+    }
     
     sub store {
         my ($self,$storage) = @_;
