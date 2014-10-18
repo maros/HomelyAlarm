@@ -28,25 +28,21 @@ package App::HomelyAlarm::Command::Add {
         $self->format();
         
         unless ($self->has_telephone || $self->has_email) {
-            say "Need to set either email or telephone number";
-            return;
+            return $self->_error("Need to set either email or telephone number");
         }
         
         if ($self->only_call && ! $self->has_telephone) {
-            say "Cannot set --only_call flag without telephone number";
-            return;
+            return $self->_error("Cannot set --only_call flag without telephone number");
         }
         
         if ($self->has_email && 
             App::HomelyAlarm::Recipient->count($self->storage,{ email => $self->email })) {
-            say "Duplicate e-mail address: ".$self->email;
-            return;
+            return $self->_error("Duplicate e-mail address: ".$self->email);
         }
         
         if ($self->has_telephone && 
             App::HomelyAlarm::Recipient->count($self->storage,{ telephone => $self->telephone })) {
-            say "Duplicate telephone number: ".$self->telephone;
-            return;
+            return $self->_error("Duplicate telephone number: ".$self->telephone);
         }
         
         my $new_recipient = App::HomelyAlarm::Recipient->new(
