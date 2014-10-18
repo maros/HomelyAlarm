@@ -51,7 +51,7 @@ package App::HomelyAlarm::Command::Run {
         is              => 'rw',
         predicate       => 'has_timer',
         clearer         => 'clear_timer',
-	isa		=> 'Ref',
+        isa             => 'Ref',
     );
 
     has 'self_url' => (
@@ -104,7 +104,8 @@ package App::HomelyAlarm::Command::Run {
             my ($env)   = @_;
 
             _log("HomelyAlarm needs a server that supports psgi.streaming and psgi.nonblocking")
-                unless ($env->{'psgi.streaming'} && $env->{'psgi.nonblocking'}) || $ENV{HARNESS_ACTIVE};
+                unless ($env->{'psgi.streaming'} && $env->{'psgi.nonblocking'}) 
+                || $ENV{HARNESS_ACTIVE};
             
             my $req     = Plack::Request->new($env);
             my @paths   = grep { $_ } split('/',$req->path_info);

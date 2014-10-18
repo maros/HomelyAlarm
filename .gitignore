@@ -4,3 +4,8 @@ MYMETA.json
 inc/
 t/testdb.db
 alarm.yml
+blib/
+pm_to_blib
+Makefile
+
+bin/deploy

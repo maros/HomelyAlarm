@@ -147,6 +147,7 @@ my $test = Plack::Test->create($ha->app);
      is(scalar @message_log,2,'Has two messages');
      is($message_log[0]->message,'Test alarm run','First message ok');
      is($message_log[0]->severity,'high','First severity ok');
+     is($message_log[0]->severity_level,3,'First severity ok');
      is($message_log[1]->message,'Test alarm intrusion','Second message ok');
 }
 
