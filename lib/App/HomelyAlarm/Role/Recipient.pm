@@ -9,6 +9,7 @@ package App::HomelyAlarm::Role::Recipient {
         isa             => 'App::HomelyAlarm::Type::Telephone',
         documentation   => 'Telephone number',
         predicate       => 'has_telephone',
+        traits          => ['Filter'],
     );
     
     has 'email' => (
@@ -16,6 +17,7 @@ package App::HomelyAlarm::Role::Recipient {
         isa             => 'App::HomelyAlarm::Type::Email',
         documentation   => 'E-mail address',
         predicate       => 'has_email',
+        traits          => ['Filter'],
     );
     
     has 'only_vacation' => (
@@ -23,6 +25,7 @@ package App::HomelyAlarm::Role::Recipient {
         isa             => 'Bool',
         documentation   => 'Call only during vacation',
         predicate       => 'has_only_vacation',
+        traits          => ['Filter'],
     );
     
     has 'only_call' => (
@@ -30,6 +33,7 @@ package App::HomelyAlarm::Role::Recipient {
         isa             => 'Bool',
         documentation   => 'Call only - no SMS',
         predicate       => 'has_only_call',
+        traits          => ['Filter'],
     );
     
     sub for_filter {
