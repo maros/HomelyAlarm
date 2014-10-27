@@ -16,9 +16,9 @@ package App::HomelyAlarm::Command::Event {
         my $total   = App::HomelyAlarm::Event->count($self->storage);
         my $found   = 0;
         
-        foreach my $recipient (App::HomelyAlarm::Event->list($self->storage,\%filter)) {
+        foreach my $event (App::HomelyAlarm::Event->list($self->storage,\%filter)) {
             $found++;
-            say $recipient->stringify;
+            say $event->stringify;
 #            my $last_message = $recipient->last_message($self->storage);
 #            if (defined $last_message) {
 #                say MooseX::App::Utils::format_list([$last_message->stringify]);

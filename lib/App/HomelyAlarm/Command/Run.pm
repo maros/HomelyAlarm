@@ -184,10 +184,12 @@ package App::HomelyAlarm::Command::Run {
         
         my $message = $req->param('message');
         my $severity = $req->param('severity') || "medium";
+        my $type = $req->param('type') || "unknown";
         
         my $new_event = App::HomelyAlarm::EventLog->new(
             message     => $message,
             severity    => $severity,
+            type        => $type,
         );
         
         $new_event->store($self->storage);
