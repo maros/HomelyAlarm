@@ -2,7 +2,7 @@
 
 # t/basic.t - test basic usage
 
-use Test::Most tests => 25+1;
+use Test::Most tests => 34+1;
 use Test::NoWarnings;
 
 use strict;
@@ -81,7 +81,7 @@ my $test = Plack::Test->create($ha->app);
 
 # Test alarm
 {
-    my $res = alarm_request('intrusion','Test alarm was detected!');
+    my $res = alarm_request('intrusion', message => 'Test alarm was detected!');
     is($res->code,200,'Status ok');
     is($res->content,'OK','Response ok');
     ok($ha->has_timer,'Timer is set');
@@ -94,17 +94,17 @@ my $test = Plack::Test->create($ha->app);
 # Test alarm reset
 {
     ok(!$ha->has_timer,"Has no timer");
-    my $res1 = alarm_request('intrusion','Test alarm was detected');
+    my $res1 = alarm_request('intrusion', message => 'Test alarm was detected');
     is($res1->code,200,'Status ok');
     ok($ha->has_timer,"Has timer");
-    my $res2 = alarm_request('reset','Reset alarm');
+    my $res2 = alarm_request('reset', message => 'Reset alarm');
     is($res2->code,200,'Status ok');
     ok(!$ha->has_timer,"Has no more timer");
 }
 
 # Test immediate alarm
 {
-    my $res = alarm_request('run','Test alarm run');
+    my $res = alarm_request('run', message => 'Test alarm run');
     is($res->code,200,'Status ok');
     is($ha->last_request->{From},$ha->caller_number,'Has correct caller number');
     is($ha->last_request->{To},$recipient->telephone,'Has correct callee number');
@@ -113,7 +113,7 @@ my $test = Plack::Test->create($ha->app);
 
 ## Test call
 #{
-#    my $res = call_request('twiml','GET',{});
+#    my $res = call_request('twiml','GET');
 #    is($res->code,200,'Status ok');
 #    like($res->content,qr/Test alarm run/,'Response ok');
 #}
@@ -121,7 +121,7 @@ my $test = Plack::Test->create($ha->app);
 # Test delayed alarm
 {
     my $cv = AnyEvent->condvar;
-    my $res = alarm_request('intrusion','Test alarm intrusion',1);
+    my $res = alarm_request('intrusion', message => 'Test alarm intrusion', timer => 1);
     is($res->code,200,'Status ok');
     is($ha->last_request,undef,"No lastcall yet");
     ok($ha->has_timer,"Has timer");
@@ -151,14 +151,32 @@ my $test = Plack::Test->create($ha->app);
      is($message_log[1]->message,'Test alarm intrusion','Second message ok');
 }
 
+# Test event log
+{
+    my $res = alarm_request('event', message => 'Test event 1', severity => 'medium', type => 'test');
+    is($res->code,200,'Status ok');
+    is($ha->last_request->{From},$ha->caller_number,'Has correct caller number');
+    is($ha->last_request->{To},$recipient->telephone,'Has correct callee number');
+    $ha->reset_last_request;
+    
+    $res = alarm_request('event', message => 'Test event 2', severity => 'medium', type => 'test');
+    
+    my @event_log = App::HomelyAlarm::EventLog->list($ha->storage);
+    is(scalar @event_log,2,'Has two events');
+    is($event_log[0]->message,'Test event 1','First message ok');
+    is($event_log[0]->severity,'medium','First severity ok');
+    is($event_log[0]->severity_level,2,'First severity ok');
+    is($event_log[0]->type,'test','First type ok');
+    is($event_log[1]->message,'Test event 2','Second message ok');
+}
+
 #unlink $recipients_database;
 
 sub alarm_request {
-    my ($path,$message,$timer) = @_;
-    $message ||= 'empty';
-    my $url = '/alarm/'.$path.'?time='.time().'&message='.$message;
-    $url .= '&timer='.$timer
-        if defined $timer;
+    my ($path,%params) = @_;
+    $params{message} ||= 'empty';
+    $params{time} ||= time();
+    my $url = '/alarm/'.$path.'?'.join('&',map { $_.'='.$params{$_} } sort keys %params);
     my $r = HTTP::Request->new('POST',$url);
     my $key = 'http://localhost'.$r->uri;
     my $digest = hmac_sha1_hex($key,$ha->secret);
