@@ -36,18 +36,6 @@ package App::HomelyAlarm::Role::Recipient {
         traits          => ['Filter','Database'],
     );
     
-    sub for_filter {
-        my ($self) = @_;
-        my %filter;
-        foreach my $field (qw(telephone email only_vacation only_call severity_level)) {
-            my $value = $self->$field;
-            next
-                unless defined $value;
-            $filter{$field} = $value;
-        }
-        return %filter;
-    }
-    
     sub format {
         my ($self) = @_;
         
