@@ -5,10 +5,6 @@ package App::HomelyAlarm::Recipient {
     with qw(App::HomelyAlarm::Role::Recipient
         App::HomelyAlarm::Role::Database);
         
-    sub database_fields {
-        return qw(telephone email only_call only_vacation severity_level) # TODO introspection
-    }
-    
     sub database_table {
         return 'recipient';
     }

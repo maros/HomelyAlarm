@@ -17,8 +17,10 @@ package App::HomelyAlarm::Role::Database {
         my @fields;
         my $meta = $self->meta;
         foreach my $attribute ($meta->get_all_attributes) {
+            #next
+            #    if $attribute->name eq 'database_id';
             next
-                if $attribute->name eq 'database_id';
+                unless $attribute->does('Database');
             push(@fields,$attribute->name);
         }
         return @fields;

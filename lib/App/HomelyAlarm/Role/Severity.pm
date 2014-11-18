@@ -7,6 +7,7 @@ package App::HomelyAlarm::Role::Severity {
         isa             => 'App::HomelyAlarm::Type::Severity',
         documentation   => 'Specify severity level',
         predicate       => 'has_severity_level',
+        traits          => ['Database'],
     );
     
     around 'BUILDARGS' => sub {

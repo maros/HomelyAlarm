@@ -9,27 +9,26 @@ package App::HomelyAlarm::EventLog {
         is          => 'ro',
         isa         => 'Str',
         required    => 1,
+        traits      => ['Filter','Database'],
     );
     
     has 'timestamp' => (
         is          => 'ro',
         isa         => 'Int',
         default     => sub { time },
+        traits      => ['Filter','Database'],
     );
     
     has 'type' => (
         is          => 'ro',
         isa         => 'Str',
         required    => 1,
+        traits      => ['Filter','Database'],
     );
     
     has '+severity_level' => (
         required    => 1,
     );
-    
-    sub database_fields {
-        return qw(message timestamp type severity_level) # TODO introspection
-    }
     
     sub database_table {
         return 'event';

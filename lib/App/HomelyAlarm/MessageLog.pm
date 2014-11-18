@@ -10,24 +10,28 @@ package App::HomelyAlarm::MessageLog {
         isa         => 'App::HomelyAlarm::Recipient',
         required    => 1,
         weak_ref    => 1,
+        traits      => ['Database'],
     );
     
     has 'message' => (
         is          => 'ro',
         isa         => 'Str',
         required    => 1,
+        traits      => ['Database'],
     );
     
     has 'timestamp' => (
         is          => 'ro',
         isa         => 'Int',
         default     => sub { time },
+        traits      => ['Database'],
     );
     
     has 'mode' => (
         is          => 'ro',
         isa         => 'Str',
         required    => 1,
+        traits      => ['Database'],
     );
     
     has '+severity_level' => (
@@ -38,17 +42,15 @@ package App::HomelyAlarm::MessageLog {
         is          => 'ro',
         isa         => 'Str',
         required    => 1,
+        traits      => ['Database'],
     );
     
     has 'status' => (
         is          => 'rw',
         isa         => 'Int',
         default     => 0,
+        traits      => ['Database'],
     );
-    
-    sub database_fields {
-        return qw(message timestamp mode severity_level reference status recipient) # TODO introspection
-    }
     
     sub database_table {
         return 'message';
