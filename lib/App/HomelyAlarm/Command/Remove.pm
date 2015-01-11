@@ -4,7 +4,8 @@ package App::HomelyAlarm::Command::Remove {
     use App::HomelyAlarm;
     use MooseX::App::Command;
     extends qw(App::HomelyAlarm);
-    with qw(App::HomelyAlarm::Role::Recipient);
+    with qw(App::HomelyAlarm::Role::Recipient
+        App::HomelyAlarm::Role::Filter);
     
     option '+telephone' => ();
     option '+email' => ();
