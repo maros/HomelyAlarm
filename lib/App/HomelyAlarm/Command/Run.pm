@@ -370,7 +370,7 @@ TWIML
                     $self->storage,
                     message     => $message,
                     mode        => 'sms',
-                    severit     => $severity,
+                    severity    => $severity,
                     reference   => $data->{sid},
                 );
             },
