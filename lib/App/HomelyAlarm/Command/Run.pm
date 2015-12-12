@@ -20,28 +20,28 @@ package App::HomelyAlarm::Command::Run {
     use Email::Stuffer;
     
     option 'twilio_sid' => (
-        is              => 'rw',
+        is              => 'ro',
         isa             => 'Str',
         documentation   => 'Twilio Account SID',
         required        => 1,
     );
     
     option 'twilio_authtoken' => (
-        is              => 'rw',
+        is              => 'ro',
         isa             => 'Str',
         documentation   => 'Twilio Authentication Token',
         required        => 1,
     );
     
     option 'caller_number' => (
-        is              => 'rw',
+        is              => 'ro',
         isa             => 'Str',
         documentation   => 'Caller telephone number',
         required        => 1,
     );
     
     option 'sender_email' => (
-        is              => 'rw',
+        is              => 'ro',
         isa             => 'Str',
         documentation   => 'Sender e-mail address',
         required        => 1,
